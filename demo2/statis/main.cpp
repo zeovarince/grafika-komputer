@@ -228,6 +228,8 @@ void input(unsigned char key, int x, int y)
     {
         currentMaze = (currentMaze == 1) ? 2 : 1;
         randomizeNRP(); // Panggil fungsi titik aman
+        postX = 0.0;
+        postY = 17.0;
     }
 
     glutPostRedisplay();
