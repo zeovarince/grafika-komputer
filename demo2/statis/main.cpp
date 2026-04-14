@@ -41,21 +41,24 @@ void Dinding(float left, float top, float right, float bottom)
     } 
     // Jika sedang dalam mode cek tabrakan
     else {
-        // Hitbox sedikit diperlebar agar NRP/Player tidak terlalu mepet dinding
-        float p_left = checkX - 1.0f;
-        float p_right = checkX + 1.5f; 
-        float p_top = checkY + 1.0f;
-        float p_bottom = checkY - 0.5f;
+    float p_left   = checkX - 0.9f; 
+    float p_right  = checkX + 0.9f; 
+    float p_top    = checkY + 0.9f; 
+    float p_bottom = checkY - 0.9f; 
 
-        // Cek objek dengan kotak dinding
-        if (p_left < right && p_right > left && p_bottom < top && p_top > bottom) {
-            isColliding = true; // Tabrakan terdeteksi!
-        }
+    if (p_left < right && p_right > left && p_bottom < top && p_top > bottom) {
+        isColliding = true;
     }
+}
 }
 
 void NRP(float x, float y)
 {
+    // Simpan status checkMode asli
+    bool tempMode = checkMode;
+
+    checkMode = false; 
+
     glColor3f(0.0, 0.0, 1.0);
     float s = 0.15;
 
