@@ -25,6 +25,9 @@ bool isColliding = false;
 float checkX = 0.0f;
 float checkY = 0.0f;
 
+// Deklarasi fungsi cekTabrakan agar bisa dipanggil di randomizeNRP
+bool cekTabrakan(float nextX, float nextY);
+
 void Dinding(float left, float top, float right, float bottom)
 {
     // Jika tidak sedang mode cek (sedang menggambar)
@@ -38,12 +41,13 @@ void Dinding(float left, float top, float right, float bottom)
     } 
     // Jika sedang dalam mode cek tabrakan
     else {
-        float p_left = checkX - 0.85f;
-        float p_right = checkX + 0.85f;
-        float p_top = checkY + 0.85f;
-        float p_bottom = checkY - 0.85f;
+        // Hitbox sedikit diperlebar agar NRP/Player tidak terlalu mepet dinding
+        float p_left = checkX - 1.0f;
+        float p_right = checkX + 1.5f; 
+        float p_top = checkY + 1.0f;
+        float p_bottom = checkY - 0.5f;
 
-        // Cek player dengan kotak dinding
+        // Cek objek dengan kotak dinding
         if (p_left < right && p_right > left && p_bottom < top && p_top > bottom) {
             isColliding = true; // Tabrakan terdeteksi!
         }
@@ -78,7 +82,6 @@ void NRP(float x, float y)
 void maze1()
 {
     glColor3f(1.0, 0.0, 0.0);
-
     // Border
     Dinding(-18.0, 18.0, -1.5, 17.0);
     Dinding(1.5, 18.0, 18.0, 17.0);
@@ -140,69 +143,85 @@ void maze1()
 void maze2()
 {
     glColor3f(0.0, 0.0, 1.0);
-
     // Border
-    Dinding(-18.0,  18.0, -1.5,  17.0);
-    Dinding(  1.5,  18.0, 18.0,  17.0);
+    Dinding(-18.0, 18.0, -1.5, 17.0);
+    Dinding(1.5, 18.0, 18.0, 17.0);
     Dinding(-18.0, -17.0, -1.5, -18.0);
-    Dinding(  1.5, -17.0, 18.0, -18.0);
-    Dinding(-18.0,  18.0, -17.0, -18.0); 
-    Dinding( 17.0,  18.0,  18.0, -18.0); 
+    Dinding(1.5, -17.0, 18.0, -18.0);
+    Dinding(-18.0, 18.0, -17.0, -18.0); 
+    Dinding(17.0, 18.0, 18.0, -18.0); 
 
     // Maze horizontal dalam
-    Dinding(-18.0,  14.5, -13.5,  13.5);
-    Dinding( -6.5,  14.5,  -1.5,  13.5);
-    Dinding(  1.5,  14.5,   6.5,  13.5);
-    Dinding( 13.5,  14.5,  18.0,  13.5);
-    Dinding(-14.5,  10.5,  -5.5,   9.5);
-    Dinding(  5.5,  10.5,  14.5,   9.5);
-    Dinding(-18.0,   6.5, -13.5,   5.5);
-    Dinding( -2.5,   6.5,   2.5,   5.5);
-    Dinding( 13.5,   6.5,  18.0,   5.5);
-    Dinding(-10.5,   2.5,  -1.5,   1.5);
-    Dinding(  1.5,   2.5,  10.5,   1.5);
-    Dinding(-18.0,  -1.5,  -9.5,  -2.5);
-    Dinding(  9.5,  -1.5,  18.0,  -2.5);
-    Dinding(-10.5,  -5.5,  -5.5,  -6.5);
-    Dinding( -2.5,  -5.5,   2.5,  -6.5);
-    Dinding(  5.5,  -5.5,  10.5,  -6.5);
-    Dinding(-18.0,  -9.5, -13.5, -10.5);
-    Dinding( -6.5,  -9.5,  -1.5, -10.5);
-    Dinding(  1.5,  -9.5,   6.5, -10.5);
-    Dinding( 13.5,  -9.5,  18.0, -10.5);
-    Dinding(-14.5, -13.5,  -9.5, -14.5);
-    Dinding( -2.5, -13.5,   2.5, -14.5);
-    Dinding(  9.5, -13.5,  14.5, -14.5);
+    Dinding(-18.0, 14.5, -13.5, 13.5);
+    Dinding(-6.5, 14.5, -1.5, 13.5);
+    Dinding(1.5, 14.5, 6.5, 13.5);
+    Dinding(13.5, 14.5, 18.0, 13.5);
+    Dinding(-14.5, 10.5, -5.5, 9.5);
+    Dinding(5.5, 10.5, 14.5, 9.5);
+    Dinding(-18.0, 6.5, -13.5, 5.5);
+    Dinding(-2.5, 6.5, 2.5, 5.5);
+    Dinding(13.5, 6.5, 18.0, 5.5);
+    Dinding(-10.5, 2.5, -1.5, 1.5);
+    Dinding(1.5, 2.5, 10.5, 1.5);
+    Dinding(-18.0, -1.5, -9.5, -2.5);
+    Dinding(9.5, -1.5, 18.0, -2.5);
+    Dinding(-10.5, -5.5, -5.5, -6.5);
+    Dinding(-2.5, -5.5, 2.5, -6.5);
+    Dinding(5.5, -5.5, 10.5, -6.5);
+    Dinding(-18.0, -9.5, -13.5, -10.5);
+    Dinding(-6.5, -9.5, -1.5, -10.5);
+    Dinding(1.5, -9.5, 6.5, -10.5);
+    Dinding(13.5, -9.5, 18.0, -10.5);
+    Dinding(-14.5, -13.5, -9.5, -14.5);
+    Dinding(-2.5, -13.5, 2.5, -14.5);
+    Dinding(9.5, -13.5, 14.5, -14.5);
 
     // Maze vertikal dalam
-    Dinding(-14.5,  14.5, -13.5,   9.5);
-    Dinding(-14.5,   6.5, -13.5,   1.5);
-    Dinding(-14.5,  -1.5, -13.5,  -6.5);
-    Dinding(-14.5,  -9.5, -13.5, -14.5);
-    Dinding(-10.5,  18.0,  -9.5,  13.5);
-    Dinding(-10.5, -13.5,  -9.5, -18.0);
-    Dinding( -6.5,  10.5,  -5.5,   5.5);
-    Dinding( -6.5,   2.5,  -5.5,  -2.5);
-    Dinding( -6.5,  -5.5,  -5.5, -10.5);
-    Dinding( -2.5,  14.5,  -1.5,   9.5);
-    Dinding( -2.5,   2.5,  -1.5,  -2.5);
-    Dinding( -2.5,  -9.5,  -1.5, -14.5);
-    Dinding(  1.5,  14.5,   2.5,   9.5);
-    Dinding(  1.5,   2.5,   2.5,  -2.5);
-    Dinding(  1.5,  -9.5,   2.5, -14.5);
-    Dinding(  5.5,  10.5,   6.5,   5.5);
-    Dinding(  5.5,   2.5,   6.5,  -2.5);
-    Dinding(  5.5,  -5.5,   6.5, -10.5);
-    Dinding(  9.5,  18.0,  10.5,  13.5);
-    Dinding(  9.5, -13.5,  10.5, -18.0);
-    Dinding( 13.5,  14.5,  14.5,   9.5);
-    Dinding( 13.5,   6.5,  14.5,   1.5);
-    Dinding( 13.5,  -1.5,  14.5,  -6.5);
-    Dinding( 13.5,  -9.5,  14.5, -14.5);
+    Dinding(-14.5, 14.5, -13.5, 9.5);
+    Dinding(-14.5, 6.5, -13.5, 1.5);
+    Dinding(-14.5, -1.5, -13.5, -6.5);
+    Dinding(-14.5, -9.5, -13.5, -14.5);
+    Dinding(-10.5, 18.0, -9.5, 13.5);
+    Dinding(-10.5, -13.5, -9.5, -18.0);
+    Dinding(-6.5, 10.5, -5.5, 5.5);
+    Dinding(-6.5, 2.5, -5.5, -2.5);
+    Dinding(-6.5, -5.5, -5.5, -10.5);
+    Dinding(-2.5, 14.5, -1.5, 9.5);
+    Dinding(-2.5, 2.5, -1.5, -2.5);
+    Dinding(-2.5, -9.5, -1.5, -14.5);
+    Dinding(1.5, 14.5, 2.5, 9.5);
+    Dinding(1.5, 2.5, 2.5, -2.5);
+    Dinding(1.5, -9.5, 2.5, -14.5);
+    Dinding(5.5, 10.5, 6.5, 5.5);
+    Dinding(5.5, 2.5, 6.5, -2.5);
+    Dinding(5.5, -5.5, 6.5, -10.5);
+    Dinding(9.5, 18.0, 10.5, 13.5);
+    Dinding(9.5, -13.5, 10.5, -18.0);
+    Dinding(13.5, 14.5, 14.5, 9.5);
+    Dinding(13.5, 6.5, 14.5, 1.5);
+    Dinding(13.5, -1.5, 14.5, -6.5);
+    Dinding(13.5, -9.5, 14.5, -14.5);
 }
+
 // Random NRP
 void randomizeNRP()
 { 
+    float randX, randY;
+    bool aman = false;
+
+    // Loop sampai posisi NRP tidak menabrak dinding
+    while (!aman) {
+        // Acak koordinat antara -15 sampai 15
+        randX = (float)(rand() % 300) / 10.0 - 15.0;
+        randY = (float)(rand() % 300) / 10.0 - 15.0;
+
+        // Gunakan fungsi cekTabrakan untuk verifikasi posisi baru
+        if (!cekTabrakan(randX, randY)) {
+            nrpPosX = randX;
+            nrpPosY = randY;
+            aman = true; 
+        }
+    }
 }
 
 // Fungsi cek tabrakan
@@ -256,7 +275,6 @@ void myinit()
     gluOrtho2D(-18.0, 18.0, -18.0, 18.0);
     glMatrixMode(GL_MODELVIEW);
     glClearColor(1.0, 1.0, 1.0, 1.0);
-    glColor3f(1.0, 1.0, 1.0);
 }
 
 void input(unsigned char key, int x, int y)
@@ -282,7 +300,7 @@ void input(unsigned char key, int x, int y)
     if (key == 'c' || key == 'C')
     {
         currentMaze = (currentMaze == 1) ? 2 : 1;
-        randomizeNRP();
+        randomizeNRP(); // Acak ulang posisi NRP saat ganti maze
         postX = 0.0;
         postY = 17.0;
     }
@@ -293,17 +311,20 @@ void input(unsigned char key, int x, int y)
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
-    randomizeNRP();
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(750, 750);
-    glutCreateWindow("demo 2 maze statis - Dengan Deteksi Dinding");
+    glutCreateWindow("Maze Game - NRP Random Safe");
+
+    myinit();
+    
+    // Panggil random NRP setelah init agar OpenGL context siap
+    randomizeNRP();
 
     glutDisplayFunc(display);
     glutKeyboardFunc(input);
 
-    myinit();
     glutMainLoop();
     return 0;
 }
