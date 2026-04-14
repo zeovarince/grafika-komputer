@@ -19,7 +19,7 @@ int currentMaze = 1;
 float nrpPosX = -5.0; // Contoh posisi awal X untuk NRP
 float nrpPosY = 0.0;  // Contoh posisi awal Y untuk NRP
 
-void drawRect(float left, float top, float right, float bottom)
+void Dinding(float left, float top, float right, float bottom)
 {
     glBegin(GL_POLYGON);
     glVertex2f(left, top);
@@ -29,29 +29,29 @@ void drawRect(float left, float top, float right, float bottom)
     glEnd();
 }
 
-void drawNRP(float x, float y)
+void NRP(float x, float y)
 {
     glColor3f(0.0, 0.0, 1.0); // Warna Biru
-    float s = 0.2;            // Ukuran diperkecil dari 1.5 ke 0.45
+    float s = 0.15;            // Ukuran diperkecil dari 1.5 ke 0.45
 
     // Angka 0
-    drawRect(x, y, x + s, y + 5 * s);
-    drawRect(x + 2 * s, y, x + 3 * s, y + 5 * s);
-    drawRect(x, y, x + 3 * s, y + s);
-    drawRect(x, y + 4 * s, x + 3 * s, y + 5 * s);
+    Dinding(x, y, x + s, y + 5 * s);
+    Dinding(x + 2 * s, y, x + 3 * s, y + 5 * s);
+    Dinding(x, y, x + 3 * s, y + s);
+    Dinding(x, y + 4 * s, x + 3 * s, y + 5 * s);
 
     // Angka 3
     float ox = x + 4 * s;
-    drawRect(ox, y, ox + 3 * s, y + s);
-    drawRect(ox, y + 2 * s, ox + 3 * s, y + 3 * s);
-    drawRect(ox, y + 4 * s, ox + 3 * s, y + 5 * s);
-    drawRect(ox + 2 * s, y, ox + 3 * s, y + 5 * s);
+    Dinding(ox, y, ox + 3 * s, y + s);
+    Dinding(ox, y + 2 * s, ox + 3 * s, y + 3 * s);
+    Dinding(ox, y + 4 * s, ox + 3 * s, y + 5 * s);
+    Dinding(ox + 2 * s, y, ox + 3 * s, y + 5 * s);
 
     // Angka 4
     ox = x + 8 * s;
-    drawRect(ox, y + 2 * s, ox + s, y + 5 * s);
-    drawRect(ox, y + 2 * s, ox + 3 * s, y + 3 * s);
-    drawRect(ox + 2 * s, y, ox + 3 * s, y + 5 * s);
+    Dinding(ox, y + 2 * s, ox + s, y + 5 * s);
+    Dinding(ox, y + 2 * s, ox + 3 * s, y + 3 * s);
+    Dinding(ox + 2 * s, y, ox + 3 * s, y + 5 * s);
 }
 
 void maze1()
@@ -60,105 +60,188 @@ void maze1()
 
     // --- DINDING TERLUAR (BORDER) ---
     // Atas
-    drawRect(-18.0, 18.0, -1.5, 17.0);
-    drawRect(1.5, 18.0, 18.0, 17.0);
+    Dinding(-18.0, 18.0, -1.5, 17.0);
+    Dinding(1.5, 18.0, 18.0, 17.0);
 
     // Bawah
-    drawRect(-18.0, -17.0, -1.5, -18.0);
-    drawRect(1.5, -17.0, 18.0, -18.0);
+    Dinding(-18.0, -17.0, -1.5, -18.0);
+    Dinding(1.5, -17.0, 18.0, -18.0);
 
     // Samping
-    drawRect(-18.0, 18.0, -17.0, -18.0); // Kiri
-    drawRect(17.0, 18.0, 18.0, -18.0);   // Kanan
+    Dinding(-18.0, 18.0, -17.0, -18.0); // Kiri
+    Dinding(17.0, 18.0, 18.0, -18.0);   // Kanan
 
     // --- DINDING DALAM ---
     // Baris Y = 14
-    drawRect(-14.5, 14.5, -5.5, 13.5);
-    drawRect(-2.5, 14.5, 2.5, 13.5);
-    drawRect(5.5, 14.5, 10.5, 13.5);
-    drawRect(13.5, 14.5, 17.0, 13.5);
+    Dinding(-14.5, 14.5, -5.5, 13.5);
+    Dinding(-2.5, 14.5, 2.5, 13.5);
+    Dinding(5.5, 14.5, 10.5, 13.5);
+    Dinding(13.5, 14.5, 17.0, 13.5);
 
     // Baris Y = 10
-    drawRect(-17.0, 10.5, -13.5, 9.5);
-    drawRect(-10.5, 10.5, -5.5, 9.5);
-    drawRect(1.5, 10.5, 6.5, 9.5);
-    drawRect(9.5, 10.5, 17.0, 9.5);
+    Dinding(-17.0, 10.5, -13.5, 9.5);
+    Dinding(-10.5, 10.5, -5.5, 9.5);
+    Dinding(1.5, 10.5, 6.5, 9.5);
+    Dinding(9.5, 10.5, 17.0, 9.5);
 
     // Baris Y = 6
-    drawRect(-17.0, 6.5, -9.5, 5.5);
-    drawRect(-6.5, 6.5, 2.5, 5.5);
-    drawRect(5.5, 6.5, 14.5, 5.5);
+    Dinding(-17.0, 6.5, -9.5, 5.5);
+    Dinding(-6.5, 6.5, 2.5, 5.5);
+    Dinding(5.5, 6.5, 14.5, 5.5);
 
     // Baris Y = 2
-    drawRect(-14.5, 2.5, -5.5, 1.5);
-    drawRect(-2.5, 2.5, 2.5, 1.5);
+    Dinding(-14.5, 2.5, -5.5, 1.5);
+    Dinding(-2.5, 2.5, 2.5, 1.5);
 
     // Baris Y = -2
-    drawRect(-17.0, -1.5, -5.5, -2.5);
-    drawRect(1.5, -1.5, 10.5, -2.5);
-    drawRect(9.5, -1.5, 14.5, -2.5);
+    Dinding(-17.0, -1.5, -5.5, -2.5);
+    Dinding(1.5, -1.5, 10.5, -2.5);
+    Dinding(9.5, -1.5, 14.5, -2.5);
 
     // Baris Y = -6
-    drawRect(-14.5, -5.5, -9.5, -6.5);
-    drawRect(-10.5, -5.5, -1.5, -6.5);
-    drawRect(1.5, -5.5, 10.5, -6.5);
-    drawRect(13.5, -5.5, 17.0, -6.5);
+    Dinding(-14.5, -5.5, -9.5, -6.5);
+    Dinding(-10.5, -5.5, -1.5, -6.5);
+    Dinding(1.5, -5.5, 10.5, -6.5);
+    Dinding(13.5, -5.5, 17.0, -6.5);
 
-    // --- GARIS BARU (SESUAI GAMBAR USER) ---
     // Menghubungkan celah di area bawah
-    drawRect(-6.5, -9.5, 1.5, -10.5);
+    Dinding(-6.5, -9.5, 1.5, -10.5);
 
     // Baris Y = -10 (Sisa)
-    drawRect(-17.0, -9.5, -9.5, -10.5);
-    drawRect(1.5, -9.5, 6.5, -10.5);
-    drawRect(9.5, -9.5, 14.5, -10.5);
+    Dinding(-17.0, -9.5, -9.5, -10.5);
+    Dinding(1.5, -9.5, 6.5, -10.5);
+    Dinding(9.5, -9.5, 14.5, -10.5);
 
     // Baris Y = -14
-    drawRect(-17.0, -13.5, -13.5, -14.5);
-    drawRect(-10.5, -13.5, -1.5, -14.5);
-    drawRect(5.5, -13.5, 10.5, -14.5);
+    Dinding(-17.0, -13.5, -13.5, -14.5);
+    Dinding(-10.5, -13.5, -1.5, -14.5);
+    Dinding(5.5, -13.5, 10.5, -14.5);
 
     // Kolom Vertikal
-    drawRect(-14.5, 14.5, -13.5, 9.5);
-    drawRect(-14.5, 2.5, -13.5, -6.5);
-    drawRect(-14.5, -9.5, -13.5, -14.5);
-    drawRect(-10.5, 17.0, -9.5, 13.5);
-    drawRect(-10.5, 10.5, -9.5, 5.5);
-    drawRect(-10.5, -1.5, -9.5, -6.5);
-    drawRect(-10.5, -9.5, -9.5, -14.5);
-    drawRect(-6.5, 10.5, -5.5, 5.5);
-    drawRect(-6.5, 6.5, -5.5, 1.5);
-    drawRect(-6.5, -5.5, -5.5, -10.5);
-    drawRect(-2.5, 14.5, -1.5, 9.5);
-    drawRect(-2.5, 6.5, -1.5, -2.5);
-    drawRect(5.5, 10.5, 6.5, 5.5);
-    drawRect(5.5, 6.5, 6.5, -10.5);
-    drawRect(9.5, 14.5, 10.5, 9.5);
-    drawRect(9.5, 6.5, 10.5, 1.5);
-    drawRect(9.5, -1.5, 10.5, -6.5);
-    drawRect(9.5, -9.5, 10.5, -14.5);
-    drawRect(13.5, 6.5, 14.5, 1.5);
-    drawRect(13.5, 2.5, 14.5, -2.5);
-    drawRect(13.5, -5.5, 14.5, -10.5);
-    drawRect(13.5, -9.5, 14.5, -17.0);
+    Dinding(-14.5, 14.5, -13.5, 9.5);
+    Dinding(-14.5, 2.5, -13.5, -6.5);
+    Dinding(-14.5, -9.5, -13.5, -14.5);
+    Dinding(-10.5, 17.0, -9.5, 13.5);
+    Dinding(-10.5, 10.5, -9.5, 5.5);
+    Dinding(-10.5, -1.5, -9.5, -6.5);
+    Dinding(-10.5, -9.5, -9.5, -14.5);
+    Dinding(-6.5, 10.5, -5.5, 5.5);
+    Dinding(-6.5, 6.5, -5.5, 1.5);
+    Dinding(-6.5, -5.5, -5.5, -10.5);
+    Dinding(-2.5, 14.5, -1.5, 9.5);
+    Dinding(-2.5, 6.5, -1.5, -2.5);
+    Dinding(5.5, 10.5, 6.5, 5.5);
+    Dinding(5.5, 6.5, 6.5, -10.5);
+    Dinding(9.5, 14.5, 10.5, 9.5);
+    Dinding(9.5, 6.5, 10.5, 1.5);
+    Dinding(9.5, -1.5, 10.5, -6.5);
+    Dinding(9.5, -9.5, 10.5, -14.5);
+    Dinding(13.5, 6.5, 14.5, 1.5);
+    Dinding(13.5, 2.5, 14.5, -2.5);
 }
 void maze2()
 {
-    // Tempat untuk menggambar maze 2
+    glColor3f(0.0, 0.0, 1.0);
+
+    // --- DINDING TERLUAR (BORDER) ---
+    // Atas (pintu di tengah x=-1.5..1.5)
+    Dinding(-18.0,  18.0, -1.5,  17.0);
+    Dinding(  1.5,  18.0, 18.0,  17.0);
+
+    // Bawah (pintu di tengah x=-1.5..1.5)
+    Dinding(-18.0, -17.0, -1.5, -18.0);
+    Dinding(  1.5, -17.0, 18.0, -18.0);
+
+    // Samping
+    Dinding(-18.0,  18.0, -17.0, -18.0); // Kiri
+    Dinding( 17.0,  18.0,  18.0, -18.0); // Kanan
+
+    // --- DINDING HORIZONTAL DALAM ---
+
+    // Baris 0 bawah (y=14.5..13.5)
+    Dinding(-18.0,  14.5, -14.0,  13.5);
+    Dinding( -6.0,  14.5,  -2.0,  13.5);
+    Dinding(  2.0,  14.5,   6.0,  13.5);
+    Dinding( 14.0,  14.5,  18.0,  13.5);
+
+    // Baris 1 bawah (y=10.5..9.5)
+    Dinding(-14.0,  10.5,  -6.0,   9.5);
+    Dinding(  6.0,  10.5,  14.0,   9.5);
+
+    // Baris 2 bawah (y=6.5..5.5)
+    Dinding(-18.0,   6.5, -14.0,   5.5);
+    Dinding( -2.0,   6.5,   2.0,   5.5);
+    Dinding( 14.0,   6.5,  18.0,   5.5);
+
+    // Baris 3 bawah (y=2.5..1.5)
+    Dinding(-10.0,   2.5,  -2.0,   1.5);
+    Dinding(  2.0,   2.5,  10.0,   1.5);
+
+    // Baris 4 bawah (y=-1.5..-2.5)
+    Dinding(-18.0,  -1.5, -10.0,  -2.5);
+    Dinding( 10.0,  -1.5,  18.0,  -2.5);
+
+    // Baris 5 bawah (y=-5.5..-6.5)
+    Dinding(-10.0,  -5.5,  -6.0,  -6.5);
+    Dinding( -2.0,  -5.5,   2.0,  -6.5);
+    Dinding(  6.0,  -5.5,  10.0,  -6.5);
+
+    // Baris 6 bawah (y=-9.5..-10.5)
+    Dinding(-18.0,  -9.5, -14.0, -10.5);
+    Dinding( -6.0,  -9.5,  -2.0, -10.5);
+    Dinding(  2.0,  -9.5,   6.0, -10.5);
+    Dinding( 14.0,  -9.5,  18.0, -10.5);
+
+    // Baris 7 bawah (y=-13.5..-14.5)
+    Dinding(-14.0, -13.5, -10.0, -14.5);
+    Dinding( -2.0, -13.5,   2.0, -14.5);
+    Dinding( 10.0, -13.5,  14.0, -14.5);
+
+    // --- DINDING VERTIKAL DALAM ---
+
+    // Kolom 0 kanan (x=-14.5..-13.5)
+    Dinding(-14.5,  14.0, -13.5,  10.0);
+    Dinding(-14.5,   6.0, -13.5,   2.0);
+    Dinding(-14.5,  -2.0, -13.5,  -6.0);
+    Dinding(-14.5, -10.0, -13.5, -14.0);
+
+    // Kolom 1 kanan (x=-10.5..-9.5)
+    Dinding(-10.5,  18.0,  -9.5,  14.0);
+    Dinding(-10.5, -14.0,  -9.5, -18.0);
+
+    // Kolom 2 kanan (x=-6.5..-5.5)
+    Dinding( -6.5,  10.0,  -5.5,   6.0);
+    Dinding( -6.5,   2.0,  -5.5,  -2.0);
+    Dinding( -6.5,  -6.0,  -5.5, -10.0);
+
+    // Kolom 3 kanan (x=-2.5..-1.5)
+    Dinding( -2.5,  14.0,  -1.5,  10.0);
+    Dinding( -2.5,   2.0,  -1.5,  -2.0);
+    Dinding( -2.5, -10.0,  -1.5, -14.0);
+
+    // Kolom 4 kanan (x=1.5..2.5)
+    Dinding(  1.5,  14.0,   2.5,  10.0);
+    Dinding(  1.5,   2.0,   2.5,  -2.0);
+    Dinding(  1.5, -10.0,   2.5, -14.0);
+
+    // Kolom 5 kanan (x=5.5..6.5)
+    Dinding(  5.5,  10.0,   6.5,   6.0);
+    Dinding(  5.5,   2.0,   6.5,  -2.0);
+    Dinding(  5.5,  -6.0,   6.5, -10.0);
+
+    // Kolom 6 kanan (x=9.5..10.5)
+    Dinding(  9.5,  18.0,  10.5,  14.0);
+    Dinding(  9.5, -14.0,  10.5, -18.0);
+
+    // Kolom 7 kanan (x=13.5..14.5)
+    Dinding( 13.5,  14.0,  14.5,  10.0);
+    Dinding( 13.5,   6.0,  14.5,   2.0);
+    Dinding( 13.5,  -2.0,  14.5,  -6.0);
+    Dinding( 13.5, -10.0,  14.5, -14.0);
 }
 
 void randomizeNRP()
-{
-    // Daftar koordinat (x, y) yang merupakan jalan kosong di maze kamu
-    // Kamu bisa menambah atau menyesuaikan angka-angka ini
-    float safePointsX[] = {-12.0, -8.0, 0.0, 8.0, 12.0, -15.0, 15.0, 4.0, -4.0};
-    float safePointsY[] = {12.0, 8.0, 4.0, 0.0, -4.0, -8.0, -12.0, 15.0, -15.0};
-
-    int jumlahTitik = sizeof(safePointsX) / sizeof(safePointsX[0]);
-    int index = rand() % jumlahTitik;
-
-    nrpPosX = safePointsX[index];
-    nrpPosY = safePointsY[index];
+{ 
 }
 
 void display()
@@ -175,7 +258,7 @@ void display()
     glEnd();
 
     // Gambar NRP
-    drawNRP(nrpPosX, nrpPosY);
+    NRP(nrpPosX, nrpPosY);
 
     // Gambar Maze
     if (currentMaze == 1)
