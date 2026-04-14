@@ -15,11 +15,11 @@ float postY = 17.0;
 float postX = 0.0;
 int currentMaze = 1;
 
-// Tambahkan deklarasi posisi NRP di sini
-float nrpPosX = -5.0; // Contoh posisi awal X untuk NRP
-float nrpPosY = 0.0;  // Contoh posisi awal Y untuk NRP
+// posisi NRP
+float nrpPosX = -5.0; 
+float nrpPosY = 0.0;
 
-// --- VARIABEL UNTUK DETEKSI TABRAKAN ---
+// Variable deteksi tabrakan
 bool checkMode = false;
 bool isColliding = false;
 float checkX = 0.0f;
@@ -36,16 +36,14 @@ void Dinding(float left, float top, float right, float bottom)
         glVertex2f(left, bottom);
         glEnd();
     } 
-    // Jika sedang dalam mode cek twadsabrakan
+    // Jika sedang dalam mode cek tabrakan
     else {
-        // Mendapatkan batas kotak player (ukuran asli 0.9, kita pakai 0.85 
-        // agar pergerakan sedikit lebih mulus dan tidak terlalu nyangkut di siku dinding)
         float p_left = checkX - 0.85f;
         float p_right = checkX + 0.85f;
         float p_top = checkY + 0.85f;
         float p_bottom = checkY - 0.85f;
 
-        // Cek overlap kotak player dengan kotak dinding
+        // Cek player dengan kotak dinding
         if (p_left < right && p_right > left && p_bottom < top && p_top > bottom) {
             isColliding = true; // Tabrakan terdeteksi!
         }
@@ -54,8 +52,8 @@ void Dinding(float left, float top, float right, float bottom)
 
 void NRP(float x, float y)
 {
-    glColor3f(0.0, 0.0, 1.0); // Warna Biru
-    float s = 0.15;            // Ukuran diperkecil dari 1.5 ke 0.45
+    glColor3f(0.0, 0.0, 1.0);
+    float s = 0.15;
 
     // Angka 0
     Dinding(x, y, x + s, y + 5 * s);
@@ -81,7 +79,7 @@ void maze1()
 {
     glColor3f(1.0, 0.0, 0.0);
 
-    // --- DINDING TERLUAR (BORDER) ---
+    // Border
     Dinding(-18.0, 18.0, -1.5, 17.0);
     Dinding(1.5, 18.0, 18.0, 17.0);
     Dinding(-18.0, -17.0, -1.5, -18.0);
@@ -89,7 +87,7 @@ void maze1()
     Dinding(-18.0, 18.0, -17.0, -18.0);
     Dinding(17.0, 18.0, 18.0, -18.0);  
 
-    // --- DINDING DALAM ---
+    // Maze dalam
     Dinding(-14.5, 14.5, -5.5, 13.5);
     Dinding(-2.5, 14.5, 2.5, 13.5);
     Dinding(5.5, 14.5, 10.5, 13.5);
@@ -143,7 +141,7 @@ void maze2()
 {
     glColor3f(0.0, 0.0, 1.0);
 
-    // --- DINDING TERLUAR (BORDER) ---
+    // Border
     Dinding(-18.0,  18.0, -1.5,  17.0);
     Dinding(  1.5,  18.0, 18.0,  17.0);
     Dinding(-18.0, -17.0, -1.5, -18.0);
@@ -151,7 +149,7 @@ void maze2()
     Dinding(-18.0,  18.0, -17.0, -18.0); 
     Dinding( 17.0,  18.0,  18.0, -18.0); 
 
-    // --- DINDING HORIZONTAL DALAM ---
+    // Maze horizontal dalam
     Dinding(-18.0,  14.5, -13.5,  13.5);
     Dinding( -6.5,  14.5,  -1.5,  13.5);
     Dinding(  1.5,  14.5,   6.5,  13.5);
@@ -176,7 +174,7 @@ void maze2()
     Dinding( -2.5, -13.5,   2.5, -14.5);
     Dinding(  9.5, -13.5,  14.5, -14.5);
 
-    // --- DINDING VERTIKAL DALAM ---
+    // Maze vertikal dalam
     Dinding(-14.5,  14.5, -13.5,   9.5);
     Dinding(-14.5,   6.5, -13.5,   1.5);
     Dinding(-14.5,  -1.5, -13.5,  -6.5);
@@ -202,25 +200,25 @@ void maze2()
     Dinding( 13.5,  -1.5,  14.5,  -6.5);
     Dinding( 13.5,  -9.5,  14.5, -14.5);
 }
-
+// Random NRP
 void randomizeNRP()
 { 
 }
 
-// --- FUNGSI DETEKSI TABRAKAN ---
+// Fungsi cek tabrakan
 bool cekTabrakan(float nextX, float nextY)
 {
-    // Aktifkan mode cek (Dinding() tidak akan menggambar ke layar)
+    // cek apakah ada dinding
     checkMode = true;
     isColliding = false;
     checkX = nextX;
     checkY = nextY;
 
-    // Panggil labirin saat ini (ini akan memanggil Dinding() secara virtual)
+    // Panggil maze
     if (currentMaze == 1) maze1();
     else maze2();
 
-    // Matikan mode cek agar display() bisa menggambar lagi
+    // matikan fungsi
     checkMode = false;
 
     return isColliding;
@@ -230,7 +228,6 @@ void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Gambar Maze
     if (currentMaze == 1) {
         maze1();
     } else {
@@ -240,7 +237,7 @@ void display()
     // Gambar NRP
     NRP(nrpPosX, nrpPosY);
 
-    // Menggambar Player (Kotak Hitam)
+    // Player
     glBegin(GL_POLYGON);
     glColor3f(0.0, 0.0, 0.0);
     glVertex2f(-0.9 + postX, 0.9 + postY);
@@ -266,7 +263,6 @@ void input(unsigned char key, int x, int y)
 {
     if (key == 'q' || key == 'Q') exit(0);
 
-    // Prediksi posisi baru berdasarkan tombol yang ditekan
     float nextX = postX;
     float nextY = postY;
 
@@ -275,10 +271,9 @@ void input(unsigned char key, int x, int y)
     if (key == 'a' || key == 'A') nextX -= 0.5;
     if (key == 'd' || key == 'D') nextX += 0.5;
 
-    // Cek apakah posisi prediksi ini berpotensi menabrak dinding
+    // Cek apakah posisi ini berpotensi menabrak dinding, jika tidak maka update posisi
     if (nextX != postX || nextY != postY) {
         if (!cekTabrakan(nextX, nextY)) {
-            // Jika tidak menabrak (False), pindahkan player
             postX = nextX;
             postY = nextY;
         }
@@ -287,7 +282,7 @@ void input(unsigned char key, int x, int y)
     if (key == 'c' || key == 'C')
     {
         currentMaze = (currentMaze == 1) ? 2 : 1;
-        randomizeNRP(); // Panggil fungsi titik aman
+        randomizeNRP();
         postX = 0.0;
         postY = 17.0;
     }
@@ -298,7 +293,7 @@ void input(unsigned char key, int x, int y)
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
-    randomizeNRP(); // Set posisi awal secara aman
+    randomizeNRP();
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
