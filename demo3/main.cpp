@@ -15,9 +15,16 @@ float postY = 17.0;
 float postX = 0.0;
 int currentMaze = 1;
 
-// posisi NRP
-float nrpPosX = -5.0; 
-float nrpPosY = 0.0;
+// posisi NRP  ← tambahkan ini
+float nrpPosX = -5.0f;
+float nrpPosY = 0.0f;
+
+// Variabel rotasi NRP (tambahkan di bagian variabel global)
+float nrpRotX = 0.0f;
+float nrpRotY = 0.0f;
+float nrpRotZ = 0.0f;
+float nrpRotSpeed = 2.0f;
+int nrpRotAxis = 0; // 0=Y, 1=X, 2=Z
 
 // Variable deteksi tabrakan
 bool checkMode = false;
@@ -93,34 +100,70 @@ void Dinding(float left, float top, float right, float bottom, float zFront, flo
 }
 }
 
+// Timer animasi rotasi otomatis
+void timerNRP(int value)
+{
+    if (nrpRotAxis == 0)      { nrpRotY += nrpRotSpeed; if (nrpRotY >= 360.0f) nrpRotY -= 360.0f; }
+    else if (nrpRotAxis == 1) { nrpRotX += nrpRotSpeed; if (nrpRotX >= 360.0f) nrpRotX -= 360.0f; }
+    else                      { nrpRotZ += nrpRotSpeed; if (nrpRotZ >= 360.0f) nrpRotZ -= 360.0f; }
+
+    glutPostRedisplay();
+    glutTimerFunc(16, timerNRP, 0);
+}
+
+// Kontrol axis rotasi via mouse
+void mouse(int button, int state, int x, int y)
+{
+    if (state == GLUT_DOWN) {
+        if (button == GLUT_LEFT_BUTTON)        nrpRotAxis = 0; // rotasi sumbu Y
+        else if (button == GLUT_MIDDLE_BUTTON) nrpRotAxis = 1; // rotasi sumbu X
+        else if (button == GLUT_RIGHT_BUTTON)  nrpRotAxis = 2; // rotasi sumbu Z
+    }
+}
+
 void NRP(float x, float y)
 {
-    // Simpan status checkMode asli
     bool tempMode = checkMode;
+    checkMode = false;
 
-    checkMode = false; 
+    glColor3f(0.0, 0.0, 1.0);
+    float s  = 0.15f;
+    float zf =  0.5f;
+    float zb = -0.5f;
 
-    glColor4f(0.0, 0.0, 1.0, 0.5);
-    float s = 0.15;
+    // Titik tengah NRP untuk rotasi
+    float cx = x + 5.5f * s;
+    float cy = y + 2.5f * s;
 
-    // Angka 0
-    Dinding(x, y, x + s, y + 5 * s);
-    Dinding(x + 2 * s, y, x + 3 * s, y + 5 * s);
-    Dinding(x, y, x + 3 * s, y + s);
-    Dinding(x, y + 4 * s, x + 3 * s, y + 5 * s);
+    glPushMatrix();
+    glTranslatef(cx, cy, 0.0f);
+    glRotatef(nrpRotX, 1.0f, 0.0f, 0.0f);
+    glRotatef(nrpRotY, 0.0f, 1.0f, 0.0f);
+    glRotatef(nrpRotZ, 0.0f, 0.0f, 1.0f);
+    glTranslatef(-cx, -cy, 0.0f);
 
-    // Angka 3
-    float ox = x + 4 * s;
-    Dinding(ox, y, ox + 3 * s, y + s);
-    Dinding(ox, y + 2 * s, ox + 3 * s, y + 3 * s);
-    Dinding(ox, y + 4 * s, ox + 3 * s, y + 5 * s);
-    Dinding(ox + 2 * s, y, ox + 3 * s, y + 5 * s);
+    // ── ANGKA 0 ──
+    Dinding(x,       y+5*s,  x+s,     y,     zf, zb); // batang kiri
+    Dinding(x+2*s,   y+5*s,  x+3*s,   y,     zf, zb); // batang kanan
+    Dinding(x,       y+s,    x+3*s,   y,     zf, zb); // batang bawah
+    Dinding(x,       y+5*s,  x+3*s,   y+4*s, zf, zb); // batang atas
 
-    // Angka 4
-    ox = x + 8 * s;
-    Dinding(ox, y + 2 * s, ox + s, y + 5 * s);
-    Dinding(ox, y + 2 * s, ox + 3 * s, y + 3 * s);
-    Dinding(ox + 2 * s, y, ox + 3 * s, y + 5 * s);
+    // ── ANGKA 3 ──
+    float ox = x + 4*s;
+    Dinding(ox,      y+s,    ox+3*s,  y,     zf, zb); // batang bawah
+    Dinding(ox,      y+3*s,  ox+3*s,  y+2*s, zf, zb); // batang tengah
+    Dinding(ox,      y+5*s,  ox+3*s,  y+4*s, zf, zb); // batang atas
+    Dinding(ox+2*s,  y+5*s,  ox+3*s,  y,     zf, zb); // batang kanan vertikal
+
+    // ── ANGKA 4 ──
+    ox = x + 8*s;
+    Dinding(ox,      y+5*s,  ox+s,    y+2*s, zf, zb); // batang kiri atas
+    Dinding(ox,      y+3*s,  ox+3*s,  y+2*s, zf, zb); // batang tengah horizontal
+    Dinding(ox+2*s,  y+5*s,  ox+3*s,  y,     zf, zb); // batang kanan vertikal
+
+    glPopMatrix();
+
+    checkMode = tempMode;
 }
 
 void maze1()
@@ -249,24 +292,60 @@ void maze2()
 
 // Random NRP
 void randomizeNRP()
-{ 
-    float randX, randY;
-    bool aman = false;
+{
+    // Posisi aman yang sudah ditetapkan di tengah koridor maze
+    // Maze 1 dan Maze 2 punya posisi aman berbeda
+    
+    float safePositionsMaze1[][2] = {
+        {-16.0f,  16.0f},  // pojok kiri atas
+        { 14.0f,  16.0f},  // pojok kanan atas //
+        {-16.0f, -16.0f},  // pojok kiri bawah
+        { 14.0f, -16.0f},  // pojok kanan bawah //
+        {  0.0f,   0.0f},  // tengah
+        { -9.0f,   8.0f},  // koridor tengah kiri atas //
+        {  8.0f,  -8.0f},  // koridor tengah kanan bawah
+        { -4.0f,  -4.0f},  // koridor bawah kiri
+        {  3.0f,   4.0f},  // koridor atas kanan //
+        {-17.0f,   0.0f},  // sisi kiri tengah //
+    };
 
-    // Loop sampai posisi NRP tidak menabrak dinding
-    while (!aman) {
-        // Acak koordinat antara -15 sampai 15
-        randX = (float)(rand() % 300) / 10.0 - 15.0;
-        randY = (float)(rand() % 300) / 10.0 - 15.0;
+    float safePositionsMaze2[][2] = {
+        {-16.0f,  16.0f},  // pojok kiri atas
+        { 14.0f,  16.0f},  // pojok kanan atas //
+        {-16.0f, -16.0f},  // pojok kiri bawah
+        { 14.0f, -16.0f},  // pojok kanan bawah //
+        {  -1.0f,   0.0f},  // tengah
+        { -9.0f,   8.0f},  // koridor tengah kiri atas //
+        {  8.0f,  -8.0f},  // koridor tengah kanan bawah
+        { -4.0f,  -4.0f},  // koridor bawah kiri
+        {  3.0f,   4.0f},  // koridor atas kanan //
+        {-17.0f,   0.0f},  // sisi kiri tengah //
+    };
 
-        // Gunakan fungsi cekTabrakan untuk verifikasi posisi baru
-        if (!cekTabrakan(randX, randY)) {
-            nrpPosX = randX;
-            nrpPosY = randY;
-            aman = true; 
+    int jumlah = 10;
+    bool ditemukan = false;
+
+    while (!ditemukan) {
+        int idx = rand() % jumlah;
+
+        float cx, cy;
+        if (currentMaze == 1) {
+            cx = safePositionsMaze1[idx][0];
+            cy = safePositionsMaze1[idx][1];
+        } else {
+            cx = safePositionsMaze2[idx][0];
+            cy = safePositionsMaze2[idx][1];
+        }
+
+        // Tetap verifikasi dengan cekTabrakan sebagai safety check
+        if (!cekTabrakan(cx, cy)) {
+            nrpPosX = cx;
+            nrpPosY = cy;
+            ditemukan = true;
         }
     }
 }
+
 
 // Fungsi cek tabrakan
 bool cekTabrakan(float nextX, float nextY)
@@ -408,7 +487,10 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 800);
+    glutMouseFunc(mouse);           // tambahkan
+    glutTimerFunc(16, timerNRP, 0); // tambahkan
     glutCreateWindow("Maze Game 3D");
+
 
     myinit();
     
