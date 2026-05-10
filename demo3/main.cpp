@@ -32,6 +32,13 @@ bool isColliding = false;
 float checkX = 0.0f;
 float checkY = 0.0f;
 
+//Variable status view
+bool isIsometric = false;
+
+//Variabel Rotasi maze
+float mazeRotX = 0.0;
+float mazeRotY = 0.0;
+
 // Deklarasi fungsi cekTabrakan agar bisa dipanggil di randomizeNRP
 bool cekTabrakan(float nextX, float nextY);
 
@@ -86,13 +93,13 @@ void Dinding(float left, float top, float right, float bottom, float zFront, flo
         glVertex3f(right, bottom, zBack);
         glVertex3f(right, bottom, zFront);
         glEnd();
-    } 
+    }
     // Jika sedang dalam mode cek tabrakan
     else {
-    float p_left   = checkX - 0.9f; 
-    float p_right  = checkX + 0.9f; 
-    float p_top    = checkY + 0.9f; 
-    float p_bottom = checkY - 0.9f; 
+    float p_left   = checkX - 0.9f;
+    float p_right  = checkX + 0.9f;
+    float p_top    = checkY + 0.9f;
+    float p_bottom = checkY - 0.9f;
 
     if (p_left < right && p_right > left && p_bottom < top && p_top > bottom) {
         isColliding = true;
@@ -103,9 +110,11 @@ void Dinding(float left, float top, float right, float bottom, float zFront, flo
 // Timer animasi rotasi otomatis
 void timerNRP(int value)
 {
-    if (nrpRotAxis == 0)      { nrpRotY += nrpRotSpeed; if (nrpRotY >= 360.0f) nrpRotY -= 360.0f; }
-    else if (nrpRotAxis == 1) { nrpRotX += nrpRotSpeed; if (nrpRotX >= 360.0f) nrpRotX -= 360.0f; }
-    else                      { nrpRotZ += nrpRotSpeed; if (nrpRotZ >= 360.0f) nrpRotZ -= 360.0f; }
+    if(isIsometric){
+        if(nrpRotAxis == 0){ nrpRotY += nrpRotSpeed; if (nrpRotY >= 360.0f) nrpRotY -= 360.0f; }
+        else if (nrpRotAxis == 1){ nrpRotX += nrpRotSpeed; if (nrpRotX >= 360.0f) nrpRotX -= 360.0f; }
+        else{ nrpRotZ += nrpRotSpeed; if (nrpRotZ >= 360.0f) nrpRotZ -= 360.0f; }
+    }
 
     glutPostRedisplay();
     glutTimerFunc(16, timerNRP, 0);
@@ -175,7 +184,7 @@ void maze1()
     Dinding(-18.0, -17.0, -1.5, -18.0 , -1.0, 1.0);
     Dinding(1.5, -17.0, 18.0, -18.0, -1.0, 1.0);
     Dinding(-18.0, 18.0, -17.0, -18.0, -1.0, 1.0);
-    Dinding(17.0, 18.0, 18.0, -18.0, -1.0, 1.0);  
+    Dinding(17.0, 18.0, 18.0, -18.0, -1.0, 1.0);
 
     // Maze dalam
     Dinding(-14.5, 14.5, -5.5, 13.5, -1.0, 1.0);
@@ -235,8 +244,8 @@ void maze2()
     Dinding(1.5, 18.0, 18.0, 17.0, -1.0, 1.0);
     Dinding(-18.0, -17.0, -1.5, -18.0, -1.0, 1.0);
     Dinding(1.5, -17.0, 18.0, -18.0, -1.0, 1.0);
-    Dinding(-18.0, 18.0, -17.0, -18.0, -1.0, 1.0); 
-    Dinding(17.0, 18.0, 18.0, -18.0, -1.0, 1.0); 
+    Dinding(-18.0, 18.0, -17.0, -18.0, -1.0, 1.0);
+    Dinding(17.0, 18.0, 18.0, -18.0, -1.0, 1.0);
 
     // Maze horizontal dalam
     Dinding(-18.0, 14.5, -13.5, 13.5, -1.0, 1.0);
@@ -295,7 +304,7 @@ void randomizeNRP()
 {
     // Posisi aman yang sudah ditetapkan di tengah koridor maze
     // Maze 1 dan Maze 2 punya posisi aman berbeda
-    
+
     float safePositionsMaze1[][2] = {
         {-16.0f,  16.0f},  // pojok kiri atas
         { 14.0f,  16.0f},  // pojok kanan atas //
@@ -370,6 +379,17 @@ void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    if(isIsometric){
+        //kamera mundur
+        glTranslatef(0.0, 0.0, -8.0);
+
+        glRotatef(mazeRotX, 1.0, 0.0, 0.0);
+        glRotatef(mazeRotY, 0.0, 1.0, 0.0);
+    }
+
     if (currentMaze == 1) {
         maze1();
     } else {
@@ -424,27 +444,25 @@ void display()
     // Gambar NRP
     NRP(nrpPosX, nrpPosY);
 
+
     glColor4f(0.5, 0.5, 0.5, 0.3); // abu-abu, transparan
 
-    glBegin(GL_POLYGON);
-    glVertex3f(-20.0,  -20.0,  -1.0);  // sudut kiri bawah
-    glVertex3f( 20.0,  -20.0,  -1.0);  // sudut kanan bawah
-    glVertex3f( 20.0,   20.0,  -1.0);  // sudut kanan atas
-    glVertex3f(-20.0,   20.0,  -1.0);  // sudut kiri atas
-    glEnd();
+    Dinding(-20.0, 20.0, 20.0, -20.0, -1.0, -2.0);
 
-    glFlush();
-    
+
+
+    glutSwapBuffers();
+
 }
 
 void myinit()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-20.0, 20.0, -20.0, 20.0, -12.0, 12.0);
+    glOrtho(-30.0, 30.0, -30.0, 30.0, -30.0, 30.0);
     glMatrixMode(GL_MODELVIEW);
     glClearColor(1.0, 1.0, 1.0, 1.0);
-    glEnable(GL_DEPTH_TEST); 
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -461,6 +479,14 @@ void input(unsigned char key, int x, int y)
     if (key == 'a' || key == 'A') nextX -= 0.5;
     if (key == 'd' || key == 'D') nextX += 0.5;
 
+    // Rotasi maze hanya bisa dilakukan saat mode isometrik
+    if (isIsometric) {
+        if (key == 'j' || key == 'J') mazeRotY -= 2.0; // Putar ke kiri
+        if (key == 'l' || key == 'L') mazeRotY += 2.0; // Putar ke kanan
+        if (key == 'i' || key == 'I') mazeRotX -= 2.0; // Putar ke atas
+        if (key == 'k' || key == 'K') mazeRotX += 2.0; // Putar ke bawah
+    }
+
     // Cek apakah posisi ini berpotensi menabrak dinding, jika tidak maka update posisi
     if (nextX != postX || nextY != postY) {
         if (!cekTabrakan(nextX, nextY)) {
@@ -471,10 +497,24 @@ void input(unsigned char key, int x, int y)
 
     if (key == 'c' || key == 'C')
     {
-        currentMaze = (currentMaze == 1) ? 2 : 1;
         randomizeNRP(); // Acak ulang posisi NRP saat ganti maze
+        currentMaze = (currentMaze == 1) ? 2 : 1;
         postX = 0.0;
         postY = 17.0;
+    }
+
+    if (key == 'v' || key == 'V'){
+        isIsometric = !isIsometric;
+    // Jika kembali ke mode Orthogonal (isIsometric == false)
+        if (!isIsometric) {
+            // Reset rotasi NRP ke posisi semula (tegak lurus)
+            nrpRotX = 0.0f;
+            nrpRotY = 0.0f;
+            nrpRotZ = 0.0f;
+
+            // Catatan: mazeRotX dan mazeRotY TIDAK di-reset
+            // agar sesuai dengan kriteria penilaian nomor 5.
+            }
     }
 
     glutPostRedisplay();
@@ -483,20 +523,15 @@ void input(unsigned char key, int x, int y)
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
-
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 800);
+    glutCreateWindow("Maze Game 3D");
     glutMouseFunc(mouse);           // tambahkan
     glutTimerFunc(16, timerNRP, 0); // tambahkan
-    glutCreateWindow("Maze Game 3D");
-
-
     myinit();
-    
     // Panggil random NRP setelah init agar OpenGL context siap
     randomizeNRP();
-
     glutDisplayFunc(display);
     glutKeyboardFunc(input);
 
