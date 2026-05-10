@@ -520,9 +520,20 @@ void input(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+void tampilkanInstruksi() {
+    cout << "=== PANDUAN MAZE GAME 3D ===" << endl;
+    cout << "- Tombol W, A, S, D untuk bergerak" << endl;
+    cout << "- Tombol C untuk ganti maze" << endl;
+    cout << "- Tombol V untuk ganti mode view (Ortho/Isometrik)" << endl;
+    cout << "- Tombol J, K, L, I untuk memutar maze di mode Isometrik" << endl;
+    cout << "- Klik Mouse (Kiri, Tengah, Kanan) untuk mengganti sumbu putar NRP" << endl;
+    cout << "============================" << endl;
+}
+
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
+    tampilkanInstruksi();
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 800);
