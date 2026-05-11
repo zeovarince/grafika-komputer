@@ -24,7 +24,7 @@ float nrpRotX = 0.0f;
 float nrpRotY = 0.0f;
 float nrpRotZ = 0.0f;
 float nrpRotSpeed = 2.0f;
-int nrpRotAxis = 0; // 0=Y, 1=X, 2=Z
+int nrpRotAxis = 0;
 
 // Variable deteksi tabrakan
 bool checkMode = false;
@@ -32,10 +32,10 @@ bool isColliding = false;
 float checkX = 0.0f;
 float checkY = 0.0f;
 
-//Variable status view
+// Variable status view
 bool isIsometric = false;
 
-//Variabel Rotasi maze
+// Variabel Rotasi maze
 float mazeRotX = 0.0;
 float mazeRotY = 0.0;
 
@@ -44,76 +44,94 @@ bool cekTabrakan(float nextX, float nextY);
 
 void Dinding(float left, float top, float right, float bottom, float zFront, float zBack)
 {
-    // Jika tidak sedang mode cek (sedang menggambar)
-    if (!checkMode) {
+    if (!checkMode)
+    {
         // Sisi DEPAN (z = zFront)
         glBegin(GL_POLYGON);
-        glVertex3f(left,  top,    zFront);
-        glVertex3f(right, top,    zFront);
+        glVertex3f(left, top, zFront);
+        glVertex3f(right, top, zFront);
         glVertex3f(right, bottom, zFront);
-        glVertex3f(left,  bottom, zFront);
+        glVertex3f(left, bottom, zFront);
         glEnd();
 
         // Sisi BELAKANG (z = zBack)
         glBegin(GL_POLYGON);
-        glVertex3f(right, top,    zBack);
-        glVertex3f(left,  top,    zBack);
-        glVertex3f(left,  bottom, zBack);
+        glVertex3f(right, top, zBack);
+        glVertex3f(left, top, zBack);
+        glVertex3f(left, bottom, zBack);
         glVertex3f(right, bottom, zBack);
         glEnd();
 
         // Sisi ATAS (y = top)
         glBegin(GL_POLYGON);
-        glVertex3f(left,  top, zFront);
+        glVertex3f(left, top, zFront);
         glVertex3f(right, top, zFront);
         glVertex3f(right, top, zBack);
-        glVertex3f(left,  top, zBack);
+        glVertex3f(left, top, zBack);
         glEnd();
 
         // Sisi BAWAH (y = bottom)
         glBegin(GL_POLYGON);
-        glVertex3f(left,  bottom, zBack);
+        glVertex3f(left, bottom, zBack);
         glVertex3f(right, bottom, zBack);
         glVertex3f(right, bottom, zFront);
-        glVertex3f(left,  bottom, zFront);
+        glVertex3f(left, bottom, zFront);
         glEnd();
 
         // Sisi KIRI (x = left)
         glBegin(GL_POLYGON);
-        glVertex3f(left, top,    zBack);
-        glVertex3f(left, top,    zFront);
+        glVertex3f(left, top, zBack);
+        glVertex3f(left, top, zFront);
         glVertex3f(left, bottom, zFront);
         glVertex3f(left, bottom, zBack);
         glEnd();
 
         // Sisi KANAN (x = right)
         glBegin(GL_POLYGON);
-        glVertex3f(right, top,    zFront);
-        glVertex3f(right, top,    zBack);
+        glVertex3f(right, top, zFront);
+        glVertex3f(right, top, zBack);
         glVertex3f(right, bottom, zBack);
         glVertex3f(right, bottom, zFront);
         glEnd();
     }
     // Jika sedang dalam mode cek tabrakan
-    else {
-    float p_left   = checkX - 0.9f;
-    float p_right  = checkX + 0.9f;
-    float p_top    = checkY + 0.9f;
-    float p_bottom = checkY - 0.9f;
+    else
+    {
+        float p_left = checkX - 0.9f;
+        float p_right = checkX + 0.9f;
+        float p_top = checkY + 0.9f;
+        float p_bottom = checkY - 0.9f;
 
-    if (p_left < right && p_right > left && p_bottom < top && p_top > bottom) {
-        isColliding = true;
+        if (p_left < right && p_right > left && p_bottom < top && p_top > bottom)
+        {
+            isColliding = true;
+        }
     }
-}
 }
 
 // Timer animasi rotasi otomatis
 void timerNRP(int value)
 {
-    if(isIsometric){
-        if(nrpRotAxis == 0){ nrpRotY += nrpRotSpeed; if (nrpRotY >= 360.0f) nrpRotY -= 360.0f; }
-        else if (nrpRotAxis == 1){ nrpRotX += nrpRotSpeed; if (nrpRotX >= 360.0f) nrpRotX -= 360.0f; }
-        else{ nrpRotZ += nrpRotSpeed; if (nrpRotZ >= 360.0f) nrpRotZ -= 360.0f; }
+    if (isIsometric)
+    {
+        if (nrpRotAxis == 0)
+        {
+            nrpRotY += nrpRotSpeed;
+            if (nrpRotY >= 360.0f)
+                nrpRotY -= 360.0f;
+        }
+        else if (nrpRotAxis == 1)
+        {
+            nrpRotX += nrpRotSpeed;
+            if (nrpRotX >= 360.0f)
+                nrpRotX -= 360.0f;
+        }
+        else
+        {
+            nrpRotZ += nrpRotSpeed;
+            if (nrpRotZ >= 360.0f)
+                nrpRotZ -= 360.0f;
+        }
     }
 
     glutPostRedisplay();
@@ -123,10 +141,14 @@ void timerNRP(int value)
 // Kontrol axis rotasi via mouse
 void mouse(int button, int state, int x, int y)
 {
-    if (state == GLUT_DOWN) {
-        if (button == GLUT_LEFT_BUTTON)        nrpRotAxis = 0; // rotasi sumbu Y
-        else if (button == GLUT_MIDDLE_BUTTON) nrpRotAxis = 1; // rotasi sumbu X
-        else if (button == GLUT_RIGHT_BUTTON)  nrpRotAxis = 2; // rotasi sumbu Z
+    if (state == GLUT_DOWN)
+    {
+        if (button == GLUT_LEFT_BUTTON)
+            nrpRotAxis = 0; // rotasi sumbu Y
+        else if (button == GLUT_MIDDLE_BUTTON)
+            nrpRotAxis = 1; // rotasi sumbu X
+        else if (button == GLUT_RIGHT_BUTTON)
+            nrpRotAxis = 2; // rotasi sumbu Z
     }
 }
 
@@ -135,40 +157,39 @@ void NRP(float x, float y)
     bool tempMode = checkMode;
     checkMode = false;
 
-    glColor3f(0.0, 0.0, 1.0);
-    float s  = 0.15f;
-    float zf =  0.5f;
-    float zb = -0.5f;
+    glColor3f(0.0, 0.0, 0.0);
+    float s = 0.15;
+    float zf = 0.5;
+    float zb = -0.5;
 
     // Titik tengah NRP untuk rotasi
-    float cx = x + 5.5f * s;
-    float cy = y + 2.5f * s;
+    float cx = 0.825;
+    float cy = 0.375;
 
     glPushMatrix();
+    glTranslatef(x, y, 0.0f);
     glTranslatef(cx, cy, 0.0f);
-    glRotatef(nrpRotX, 1.0f, 0.0f, 0.0f);
-    glRotatef(nrpRotY, 0.0f, 1.0f, 0.0f);
-    glRotatef(nrpRotZ, 0.0f, 0.0f, 1.0f);
+    glRotatef(nrpRotX, 1.0, 0.0, 0.0);
+    glRotatef(nrpRotY, 0.0, 1.0, 0.0);
+    glRotatef(nrpRotZ, 0.0, 0.0, 1.0);
     glTranslatef(-cx, -cy, 0.0f);
 
     // ── ANGKA 0 ──
-    Dinding(x,       y+5*s,  x+s,     y,     zf, zb); // batang kiri
-    Dinding(x+2*s,   y+5*s,  x+3*s,   y,     zf, zb); // batang kanan
-    Dinding(x,       y+s,    x+3*s,   y,     zf, zb); // batang bawah
-    Dinding(x,       y+5*s,  x+3*s,   y+4*s, zf, zb); // batang atas
+    Dinding(0.00, 0.75, 0.15, 0.00, 0.5, -0.5);
+    Dinding(0.30, 0.75, 0.45, 0.00, 0.5, -0.5);
+    Dinding(0.00, 0.15, 0.45, 0.00, 0.5, -0.5);
+    Dinding(0.00, 0.75, 0.45, 0.60, 0.5, -0.5);
 
     // ── ANGKA 3 ──
-    float ox = x + 4*s;
-    Dinding(ox,      y+s,    ox+3*s,  y,     zf, zb); // batang bawah
-    Dinding(ox,      y+3*s,  ox+3*s,  y+2*s, zf, zb); // batang tengah
-    Dinding(ox,      y+5*s,  ox+3*s,  y+4*s, zf, zb); // batang atas
-    Dinding(ox+2*s,  y+5*s,  ox+3*s,  y,     zf, zb); // batang kanan vertikal
+    Dinding(0.60, 0.15, 1.05, 0.00, 0.5, -0.5);
+    Dinding(0.60, 0.45, 1.05, 0.30, 0.5, -0.5);
+    Dinding(0.60, 0.75, 1.05, 0.60, 0.5, -0.5);
+    Dinding(0.90, 0.75, 1.05, 0.00, 0.5, -0.5);
 
     // ── ANGKA 4 ──
-    ox = x + 8*s;
-    Dinding(ox,      y+5*s,  ox+s,    y+2*s, zf, zb); // batang kiri atas
-    Dinding(ox,      y+3*s,  ox+3*s,  y+2*s, zf, zb); // batang tengah horizontal
-    Dinding(ox+2*s,  y+5*s,  ox+3*s,  y,     zf, zb); // batang kanan vertikal
+    Dinding(1.20, 0.75, 1.35, 0.30, 0.5, -0.5);
+    Dinding(1.20, 0.45, 1.65, 0.30, 0.5, -0.5);
+    Dinding(1.50, 0.75, 1.65, 0.00, 0.5, -0.5);
 
     glPopMatrix();
 
@@ -177,11 +198,11 @@ void NRP(float x, float y)
 
 void maze1()
 {
-    glColor3f(1.0, 0.0, 0.0);
+    glColor3f(0.0, 0.0, 1.0);
     // Border
     Dinding(-18.0, 18.0, -1.5, 17.0, -1.0, 1.0);
     Dinding(1.5, 18.0, 18.0, 17.0, -1.0, 1.0);
-    Dinding(-18.0, -17.0, -1.5, -18.0 , -1.0, 1.0);
+    Dinding(-18.0, -17.0, -1.5, -18.0, -1.0, 1.0);
     Dinding(1.5, -17.0, 18.0, -18.0, -1.0, 1.0);
     Dinding(-18.0, 18.0, -17.0, -18.0, -1.0, 1.0);
     Dinding(17.0, 18.0, 18.0, -18.0, -1.0, 1.0);
@@ -302,59 +323,59 @@ void maze2()
 // Random NRP
 void randomizeNRP()
 {
-    // Posisi aman yang sudah ditetapkan di tengah koridor maze
-    // Maze 1 dan Maze 2 punya posisi aman berbeda
-
     float safePositionsMaze1[][2] = {
-        {-16.0f,  16.0f},  // pojok kiri atas
-        { 14.0f,  16.0f},  // pojok kanan atas //
-        {-16.0f, -16.0f},  // pojok kiri bawah
-        { 14.0f, -16.0f},  // pojok kanan bawah //
-        {  0.0f,   0.0f},  // tengah
-        { -9.0f,   8.0f},  // koridor tengah kiri atas //
-        {  8.0f,  -8.0f},  // koridor tengah kanan bawah
-        { -4.0f,  -4.0f},  // koridor bawah kiri
-        {  3.0f,   4.0f},  // koridor atas kanan //
-        {-17.0f,   0.0f},  // sisi kiri tengah //
+        {-16.0, 16.0},
+        {14.0, 16.0},
+        {-16.0, -16.0},
+        {14.0, -16.0},
+        {-1.0, 0.0},
+        {-9.0, 8.0},
+        {8.0, -8.0},
+        {-4.0, -4.0},
+        {3.0, 4.0},
+        {-17.0, 0.0},
     };
 
     float safePositionsMaze2[][2] = {
-        {-16.0f,  16.0f},  // pojok kiri atas
-        { 14.0f,  16.0f},  // pojok kanan atas //
-        {-16.0f, -16.0f},  // pojok kiri bawah
-        { 14.0f, -16.0f},  // pojok kanan bawah //
-        {  -1.0f,   0.0f},  // tengah
-        { -9.0f,   8.0f},  // koridor tengah kiri atas //
-        {  8.0f,  -8.0f},  // koridor tengah kanan bawah
-        { -4.0f,  -4.0f},  // koridor bawah kiri
-        {  3.0f,   4.0f},  // koridor atas kanan //
-        {-17.0f,   0.0f},  // sisi kiri tengah //
+        {-16.0, 16.0},
+        {14.0, 16.0},
+        {-16.0, -16.0},
+        {14.0, -16.0},
+        {-1.0, 0.0},
+        {-9.0, 8.0},
+        {8.0, -8.0},
+        {-4.0, -4.0},
+        {3.0, 4.0},
+        {-17.0, 0.0},
     };
 
     int jumlah = 10;
     bool ditemukan = false;
 
-    while (!ditemukan) {
+    while (!ditemukan)
+    {
         int idx = rand() % jumlah;
 
         float cx, cy;
-        if (currentMaze == 1) {
+        if (currentMaze == 1)
+        {
             cx = safePositionsMaze1[idx][0];
             cy = safePositionsMaze1[idx][1];
-        } else {
+        }
+        else
+        {
             cx = safePositionsMaze2[idx][0];
             cy = safePositionsMaze2[idx][1];
         }
 
-        // Tetap verifikasi dengan cekTabrakan sebagai safety check
-        if (!cekTabrakan(cx, cy)) {
+        if (!cekTabrakan(cx, cy))
+        {
             nrpPosX = cx;
             nrpPosY = cy;
             ditemukan = true;
         }
     }
 }
-
 
 // Fungsi cek tabrakan
 bool cekTabrakan(float nextX, float nextY)
@@ -366,8 +387,10 @@ bool cekTabrakan(float nextX, float nextY)
     checkY = nextY;
 
     // Panggil maze
-    if (currentMaze == 1) maze1();
-    else maze2();
+    if (currentMaze == 1)
+        maze1();
+    else
+        maze2();
 
     // matikan fungsi
     checkMode = false;
@@ -382,77 +405,87 @@ void display()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    if(isIsometric){
-        //kamera mundur
+    if (isIsometric)
+    {
         glTranslatef(0.0, 0.0, -8.0);
 
         glRotatef(mazeRotX, 1.0, 0.0, 0.0);
         glRotatef(mazeRotY, 0.0, 1.0, 0.0);
     }
 
-    if (currentMaze == 1) {
+    if (currentMaze == 1)
+    {
         maze1();
-    } else {
+    }
+    else
+    {
         maze2();
     }
     // Player - balok 3D langsung
     float L = -0.9f + postX;
-    float R =  0.9f + postX;
-    float T =  0.9f + postY;
+    float R = 0.9f + postX;
+    float T = 0.9f + postY;
     float B = -0.9f + postY;
-    float zF  = 0.9f + 1.0f;  // = 1.9
+    float zF = 0.9f + 1.0f;   // = 1.9
     float zBk = -0.9f + 1.0f; // = 0.1
 
     glColor4f(1.0, 1.0, 1.0, 1.0);
 
     // Sisi Depan
     glBegin(GL_POLYGON);
-    glVertex3f(L, T, zF); glVertex3f(R, T, zF);
-    glVertex3f(R, B, zF); glVertex3f(L, B, zF);
+    glVertex3f(L, T, zF);
+    glVertex3f(R, T, zF);
+    glVertex3f(R, B, zF);
+    glVertex3f(L, B, zF);
     glEnd();
 
     // Sisi Belakang
     glBegin(GL_POLYGON);
-    glVertex3f(R, T, zBk); glVertex3f(L, T, zBk);
-    glVertex3f(L, B, zBk); glVertex3f(R, B, zBk);
+    glVertex3f(R, T, zBk);
+    glVertex3f(L, T, zBk);
+    glVertex3f(L, B, zBk);
+    glVertex3f(R, B, zBk);
     glEnd();
 
     // Sisi Atas
     glBegin(GL_POLYGON);
-    glVertex3f(L, T, zF);  glVertex3f(R, T, zF);
-    glVertex3f(R, T, zBk); glVertex3f(L, T, zBk);
+    glVertex3f(L, T, zF);
+    glVertex3f(R, T, zF);
+    glVertex3f(R, T, zBk);
+    glVertex3f(L, T, zBk);
     glEnd();
 
     // Sisi Bawah
     glBegin(GL_POLYGON);
-    glVertex3f(L, B, zBk); glVertex3f(R, B, zBk);
-    glVertex3f(R, B, zF);  glVertex3f(L, B, zF);
+    glVertex3f(L, B, zBk);
+    glVertex3f(R, B, zBk);
+    glVertex3f(R, B, zF);
+    glVertex3f(L, B, zF);
     glEnd();
 
     // Sisi Kiri
     glBegin(GL_POLYGON);
-    glVertex3f(L, T, zBk); glVertex3f(L, T, zF);
-    glVertex3f(L, B, zF);  glVertex3f(L, B, zBk);
+    glVertex3f(L, T, zBk);
+    glVertex3f(L, T, zF);
+    glVertex3f(L, B, zF);
+    glVertex3f(L, B, zBk);
     glEnd();
 
     // Sisi Kanan
     glBegin(GL_POLYGON);
-    glVertex3f(R, T, zF);  glVertex3f(R, T, zBk);
-    glVertex3f(R, B, zBk); glVertex3f(R, B, zF);
+    glVertex3f(R, T, zF);
+    glVertex3f(R, T, zBk);
+    glVertex3f(R, B, zBk);
+    glVertex3f(R, B, zF);
     glEnd();
 
-    // Gambar NRP
     NRP(nrpPosX, nrpPosY);
 
+    glColor4f(0.5, 0.5, 0.5, 0.3);
 
-    glColor4f(0.5, 0.5, 0.5, 0.3); // abu-abu, transparan
-
-    Dinding(-20.0, 20.0, 20.0, -20.0, -1.0, -2.0);
-
-
+    Dinding(-18.0, 18.0, 18.0, -18.0, 0.2, 0.0);
 
     glutSwapBuffers();
-
 }
 
 void myinit()
@@ -469,27 +502,41 @@ void myinit()
 
 void input(unsigned char key, int x, int y)
 {
-    if (key == 'q' || key == 'Q') exit(0);
+    if (key == 'q' || key == 'Q')
+        exit(0);
 
     float nextX = postX;
     float nextY = postY;
 
-    if (key == 'w' || key == 'W') nextY += 0.5;
-    if (key == 's' || key == 'S') nextY -= 0.5;
-    if (key == 'a' || key == 'A') nextX -= 0.5;
-    if (key == 'd' || key == 'D') nextX += 0.5;
+    if (key == 'w' || key == 'W')
+        nextY += 0.5;
+    if (key == 's' || key == 'S')
+        nextY -= 0.5;
+    if (key == 'a' || key == 'A')
+        nextX -= 0.5;
+    if (key == 'd' || key == 'D')
+        nextX += 0.5;
 
-    // Rotasi maze hanya bisa dilakukan saat mode isometrik
-    if (isIsometric) {
-        if (key == 'j' || key == 'J') mazeRotY -= 2.0; // Putar ke kiri
-        if (key == 'l' || key == 'L') mazeRotY += 2.0; // Putar ke kanan
-        if (key == 'i' || key == 'I') mazeRotX -= 2.0; // Putar ke atas
-        if (key == 'k' || key == 'K') mazeRotX += 2.0; // Putar ke bawah
+    if (isIsometric)
+    {
+        if (key == 'j' || key == 'J')
+            mazeRotY -= 2.0;
+        if (key == 'l' || key == 'L')
+            mazeRotY += 2.0;
+        if (key == 'i' || key == 'I')
+            mazeRotX -= 2.0;
+        if (key == 'k' || key == 'K')
+            mazeRotX += 2.0;
     }
+    if (nextY > 17.0f)
+        nextY = 17.0f;
+    if (nextY < -17.0f)
+        nextY = -17.0f;
 
-    // Cek apakah posisi ini berpotensi menabrak dinding, jika tidak maka update posisi
-    if (nextX != postX || nextY != postY) {
-        if (!cekTabrakan(nextX, nextY)) {
+    if (nextX != postX || nextY != postY)
+    {
+        if (!cekTabrakan(nextX, nextY))
+        {
             postX = nextX;
             postY = nextY;
         }
@@ -497,30 +544,28 @@ void input(unsigned char key, int x, int y)
 
     if (key == 'c' || key == 'C')
     {
-        randomizeNRP(); // Acak ulang posisi NRP saat ganti maze
+        randomizeNRP();
         currentMaze = (currentMaze == 1) ? 2 : 1;
         postX = 0.0;
         postY = 17.0;
     }
 
-    if (key == 'v' || key == 'V'){
+    if (key == 'v' || key == 'V')
+    {
         isIsometric = !isIsometric;
-    // Jika kembali ke mode Orthogonal (isIsometric == false)
-        if (!isIsometric) {
-            // Reset rotasi NRP ke posisi semula (tegak lurus)
+        if (!isIsometric)
+        {
             nrpRotX = 0.0f;
             nrpRotY = 0.0f;
             nrpRotZ = 0.0f;
-
-            // Catatan: mazeRotX dan mazeRotY TIDAK di-reset
-            // agar sesuai dengan kriteria penilaian nomor 5.
-            }
+        }
     }
 
     glutPostRedisplay();
 }
 
-void tampilkanInstruksi() {
+void tampilkanInstruksi()
+{
     cout << "=== PANDUAN MAZE GAME 3D ===" << endl;
     cout << "- Tombol W, A, S, D untuk bergerak" << endl;
     cout << "- Tombol C untuk ganti maze" << endl;
@@ -538,10 +583,10 @@ int main(int argc, char *argv[])
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 800);
     glutCreateWindow("Maze Game 3D");
-    glutMouseFunc(mouse);           // tambahkan
-    glutTimerFunc(16, timerNRP, 0); // tambahkan
+    glutMouseFunc(mouse);
+    glutTimerFunc(16, timerNRP, 0);
     myinit();
-    // Panggil random NRP setelah init agar OpenGL context siap
+
     randomizeNRP();
     glutDisplayFunc(display);
     glutKeyboardFunc(input);
