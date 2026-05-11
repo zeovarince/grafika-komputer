@@ -404,6 +404,7 @@ void display()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    glPushMatrix();
 
     if (isIsometric)
     {
