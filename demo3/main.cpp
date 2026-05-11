@@ -132,9 +132,9 @@ void timerNRP(int value)
             if (nrpRotZ >= 360.0f)
                 nrpRotZ -= 360.0f;
         }
+        glutPostRedisplay();
     }
 
-    glutPostRedisplay();
     glutTimerFunc(16, timerNRP, 0);
 }
 
@@ -477,13 +477,11 @@ void display()
     glVertex3f(R, T, zBk);
     glVertex3f(R, B, zBk);
     glVertex3f(R, B, zF);
-    glEnd();
-
-    NRP(nrpPosX, nrpPosY);
+    glEnd();    
 
     glColor4f(0.5, 0.5, 0.5, 0.3);
-
     Dinding(-18.0, 18.0, 18.0, -18.0, 0.2, 0.0);
+    NRP(nrpPosX, nrpPosY);
 
     glutSwapBuffers();
 }
