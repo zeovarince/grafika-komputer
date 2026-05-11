@@ -421,6 +421,13 @@ void display()
     {
         maze2();
     }
+    
+    glColor4f(0.5, 0.5, 0.5, 0.3);
+    Dinding(-18.0, 18.0, 18.0, -18.0, 0.2, 0.0);
+
+    NRP(nrpPosX, nrpPosY);
+    
+    glPopMatrix();
     // Player - balok 3D langsung
     float L = -0.9f + postX;
     float R = 0.9f + postX;
@@ -478,10 +485,6 @@ void display()
     glVertex3f(R, B, zBk);
     glVertex3f(R, B, zF);
     glEnd();    
-
-    glColor4f(0.5, 0.5, 0.5, 0.3);
-    Dinding(-18.0, 18.0, 18.0, -18.0, 0.2, 0.0);
-    NRP(nrpPosX, nrpPosY);
 
     glutSwapBuffers();
 }
