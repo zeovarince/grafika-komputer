@@ -15,22 +15,22 @@ float postY = 17.0;
 float postX = 0.0;
 int currentMaze = 1;
 
-// posisi NRP  ← tambahkan ini
-float nrpPosX = -5.0f;
-float nrpPosY = 0.0f;
+// posisi NRP 
+float nrpPosX = -5.0;
+float nrpPosY = 0.0;
 
-// Variabel rotasi NRP (tambahkan di bagian variabel global)
-float nrpRotX = 0.0f;
-float nrpRotY = 0.0f;
-float nrpRotZ = 0.0f;
-float nrpRotSpeed = 2.0f;
+// Variabel rotasi NRP
+float nrpRotX = 0.0;
+float nrpRotY = 0.0;
+float nrpRotZ = 0.0;
+float nrpRotSpeed = 2.0;
 int nrpRotAxis = 0;
 
 // Variable deteksi tabrakan
 bool checkMode = false;
 bool isColliding = false;
-float checkX = 0.0f;
-float checkY = 0.0f;
+float checkX = 0.0;
+float checkY = 0.0;
 
 // Variable status view
 bool isIsometric = false;
@@ -44,6 +44,7 @@ bool cekTabrakan(float nextX, float nextY);
 
 void Dinding(float left, float top, float right, float bottom, float zFront, float zBack)
 {
+    // Jika tidak dalam mode cek tabrakan, gambar dinding seperti biasa
     if (!checkMode)
     {
         // Sisi DEPAN (z = zFront)
@@ -94,13 +95,13 @@ void Dinding(float left, float top, float right, float bottom, float zFront, flo
         glVertex3f(right, bottom, zFront);
         glEnd();
     }
-    // Jika sedang dalam mode cek tabrakan
+    // Jika dalam mode cek tabrakan, lakukan pengecekan
     else
     {
-        float p_left = checkX - 0.9f;
-        float p_right = checkX + 0.9f;
-        float p_top = checkY + 0.9f;
-        float p_bottom = checkY - 0.9f;
+        float p_left = checkX - 0.9;
+        float p_right = checkX + 0.9;
+        float p_top = checkY + 0.9;
+        float p_bottom = checkY - 0.9;
 
         if (p_left < right && p_right > left && p_bottom < top && p_top > bottom)
         {
@@ -404,7 +405,6 @@ void display()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glPushMatrix();
 
     if (isIsometric)
     {
@@ -424,18 +424,14 @@ void display()
     }
     NRP(nrpPosX, nrpPosY);
     
-    glColor4f(0.5, 0.5, 0.5, 0.3);
-    Dinding(-18.0, 18.0, 18.0, -18.0, 0.2, 0.0);
 
-    
-    glPopMatrix();
     // Player - balok 3D langsung
     float L = -0.9f + postX;
     float R = 0.9f + postX;
     float T = 0.9f + postY;
     float B = -0.9f + postY;
-    float zF = 0.9f + 1.0f;   // = 1.9
-    float zBk = -0.9f + 1.0f; // = 0.1
+    float zF = 0.9f + 1.0f; 
+    float zBk = -0.9f + 1.0f;
 
     glColor4f(1.0, 1.0, 1.0, 1.0);
 
@@ -486,6 +482,9 @@ void display()
     glVertex3f(R, B, zBk);
     glVertex3f(R, B, zF);
     glEnd();    
+
+    glColor4f(0.5, 0.5, 0.5, 0.3);
+    Dinding(-18.0, 18.0, 18.0, -18.0, 0.2, 0.0);
 
     glutSwapBuffers();
 }
