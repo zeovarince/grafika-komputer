@@ -1,0 +1,2 @@
+Bagian base 2D-nya udah selesai ya. Tolong dicek lagi untuk bagian tampilan NRP sama ukuran maze-nya, apakah udah bener atau belum. Kalau misal ada yang kurang pas atau ada bagian lain yang perlu aku kerjain lagi, langsung cp aku aja ya. Good luck buat ngerjain bagian 3D-nya!
+-rafi
