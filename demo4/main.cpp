@@ -133,8 +133,7 @@ void drawCell(int gridX, int gridY, float r, float g, float b, bool isWallCell)
     }
     else
     {
-        // Jalan tetap datar di Z=0, sama seperti sebelumnya
-        glColor3f(0.05f, 0.05f, 0.2f);
+        glColor4f(0.05f, 0.05f, 0.2f, 0.5f);
         glBegin(GL_QUADS);
         glVertex3f((float)gridX, (float)gridY, 0.0f);
         glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
@@ -157,6 +156,16 @@ void drawMaze()
             else
             {
                 // UBAH: tambah parameter false
+                drawCell(x, y, 0.85f, 0.85f, 0.85f, false);
+            }
+        }
+    }
+    for (int y = 0; y < GRID_SIZE; y++)
+    {
+        for (int x = 0; x < GRID_SIZE; x++)
+        {
+            if (currentMaze[y][x] == 0)
+            {
                 drawCell(x, y, 0.85f, 0.85f, 0.85f, false);
             }
         }
@@ -197,12 +206,6 @@ void drawPlayer()
     else
         drawPlayer_2D();
 }
-
-// ===================================================
-// GAMBAR ANGKA NRP "034" PAKAI GAYA SEVEN SEGMENT
-// tiap angka dibentuk dari beberapa kotak kecil
-// (GL_QUADS), bukan ditimpa/dilubangi warna background
-// ===================================================
 
 // gambar 1 batang segmen (kotak kecil) dari titik (x1,y1) ke (x2,y2)
 void gambarSegmen(float x1, float y1, float x2, float y2, float z = 0.02f)
@@ -654,12 +657,24 @@ void setupView()
 // dipanggil GLUT tiap kali layar perlu digambar ulang
 void display()
 {
-    setupView(); // <-- baris baru, taruh paling atas
-
+    setupView();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    drawMaze();
-    drawNRP(nrpX, nrpY);
+
+    // LANGKAH 1 — tembok dulu (solid)
+    for (int y = 0; y < GRID_SIZE; y++)
+        for (int x = 0; x < GRID_SIZE; x++)
+            if (currentMaze[y][x] == 1)
+                drawCell(x, y, 0.2f, 0.2f, 0.2f, true);
+
+    // LANGKAH 2 — player dan NRP (solid, sebelum lantai transparan)
     drawPlayer();
+    drawNRP(nrpX, nrpY);
+
+    // LANGKAH 3 — lantai transparan PALING AKHIR
+    for (int y = 0; y < GRID_SIZE; y++)
+        for (int x = 0; x < GRID_SIZE; x++)
+            if (currentMaze[y][x] == 0)
+                drawCell(x, y, 0.85f, 0.85f, 0.85f, false);
 
     glutSwapBuffers();
 }
