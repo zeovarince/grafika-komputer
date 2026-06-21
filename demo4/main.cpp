@@ -9,43 +9,59 @@
 #include <time.h>
 using namespace std;
 
-// ===========================================
-// GAME MAZE 2D - GRID 9x9
-// Tugas Grafika Komputer
-// C++, MinGW, FreeGLUT, Immediate Mode OpenGL
-// ===========================================
-
-// ukuran grid maze 9x9
-const int GRID_SIZE = 9;
+// ukuran grid maze 19x19
+const int GRID_SIZE = 19;
 
 // posisi pintu masuk (atas tengah) dan pintu keluar (bawah tengah)
-const int ENTRANCE_X = 4, ENTRANCE_Y = 8;
-const int EXIT_X     = 4, EXIT_Y     = 0;
+const int ENTRANCE_X = 9, ENTRANCE_Y = 18;
+const int EXIT_X     = 9, EXIT_Y     = 0;
 
-// data maze 1, 1 = tembok, 0 = jalan
 int maze1[GRID_SIZE][GRID_SIZE] = {
-    {1,1,1,1,0,1,1,1,1},
-    {1,0,0,0,0,0,0,0,1},
-    {1,0,1,1,0,1,1,0,1},
-    {1,0,1,0,0,0,1,0,1},
-    {1,0,0,0,1,0,0,0,1},
-    {1,0,1,0,0,0,1,0,1},
-    {1,0,1,1,0,1,1,0,1},
-    {1,0,0,0,0,0,0,0,1},
-    {1,1,1,1,0,1,1,1,1}
+    {1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1},
+    {1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1},
+    {1,0,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,0,1},
+    {1,0,0,0,1,0,1,0,1,0,1,0,0,0,1,0,0,0,1},
+    {1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1},
+    {1,0,1,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,1},
+    {1,0,1,0,1,0,1,1,1,1,1,1,1,0,1,1,1,0,1},
+    {1,0,1,0,1,0,1,0,0,0,0,0,0,0,1,0,1,0,1},
+    {1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1},
+    {1,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,1,0,1},
+    {1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,0,1,0,1},
+    {1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0,1},
+    {1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,1,1,0,1},
+    {1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,1,0,1},
+    {1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,0,1},
+    {1,0,1,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,1},
+    {1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,0,1},
+    {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1},
+    {1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1}
 };
 
 // data maze 2, layout beda buat ganti level
+// dibangkitkan pakai algoritma "perfect maze" (recursive backtracker)
+// dengan kerangka 9 ruangan x 9 ruangan yang sama seperti maze1,
+// supaya gaya & densitas dindingnya konsisten. Sudah divalidasi BFS juga.
 int maze2[GRID_SIZE][GRID_SIZE] = {
-    {1,1,1,1,0,1,1,1,1},
-    {1,0,0,0,1,0,0,0,1},
-    {1,0,1,0,1,0,1,0,1},
-    {1,0,1,0,0,0,1,0,1},
-    {1,0,1,1,1,1,1,0,1},
-    {1,0,0,0,0,0,0,0,1},
-    {1,1,1,0,1,0,1,1,1},
-    {1,0,0,0,0,0,0,0,1},
-    {1,1,1,1,0,1,1,1,1}
+    {1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1},
+    {1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,0,0,1},
+    {1,1,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1,0,1},
+    {1,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,1},
+    {1,0,1,0,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1},
+    {1,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,1},
+    {1,0,1,0,1,1,1,1,1,0,1,1,1,0,1,0,1,0,1},
+    {1,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,1,0,1},
+    {1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1,0,1},
+    {1,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,1,0,1},
+    {1,0,1,0,1,1,1,1,1,0,1,1,1,0,1,1,1,0,1},
+    {1,0,1,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1},
+    {1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,0,1,0,1},
+    {1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0,1},
+    {1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1},
+    {1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1},
+    {1,0,1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1},
+    {1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1}
 };
 
 // pointer ke maze yang lagi aktif (awalnya nunjuk ke maze1)
@@ -210,7 +226,7 @@ void drawNRP(int gridX, int gridY)
     gambarAngka4(x2, baseY, lebarAngka, tinggiAngka);
 }
 
-// cek apakah koordinat (x,y) masih di dalam grid 0-8
+// cek apakah koordinat (x,y) masih di dalam grid 0..GRID_SIZE-1
 bool isInsideGrid(int x, int y)
 {
     return (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE);
@@ -322,7 +338,7 @@ void myinit()
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0.0, 9.0, 0.0, 9.0); // dunia 2D 9x9, 1 unit = 1 kotak grid
+    gluOrtho2D(0.0, (double)GRID_SIZE, 0.0, (double)GRID_SIZE); // dunia 2D 19x19, 1 unit = 1 kotak grid
     glMatrixMode(GL_MODELVIEW);
 
     srand(time(NULL)); // seed random sekali di awal program
@@ -332,13 +348,13 @@ void myinit()
 
 int main(int argc, char** argv)
 {
-    cout << "Maze 2D - Grid 9x9" << endl;
+    cout << "Maze 2D - Grid 19x19" << endl;
     cout << "W A S D untuk gerak, C untuk ganti level" << endl;
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(600, 600);
-    glutCreateWindow("Maze 2D - Grid 9x9");
+    glutCreateWindow("Maze 2D - Grid 19x19");
 
     myinit();
 

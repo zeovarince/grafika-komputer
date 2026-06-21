@@ -7,326 +7,347 @@
 #include <iostream>
 #include <stdlib.h>
 #include <time.h>
-
 using namespace std;
 
-// Variabel Global
-float postY = 17.0;
-float postX = 0.0;
-int currentMaze = 1;
+// ===========================================
+// GAME MAZE 2D - GRID 9x9
+// Tugas Grafika Komputer
+// C++, MinGW, FreeGLUT, Immediate Mode OpenGL
+// Pola maze dibuat bercabang & berkelok (mirip maze asli),
+// tapi tetap pakai struktur grid array maze[y][x]
+// ===========================================
+
+// ukuran grid maze 9x9
+const int GRID_SIZE = 9;
+
+// posisi pintu masuk (atas tengah) dan pintu keluar (bawah tengah)
+const int ENTRANCE_X = 4, ENTRANCE_Y = 8;
+const int EXIT_X     = 4, EXIT_Y     = 0;
+
+// data maze 1, 1 = tembok, 0 = jalan
+// (pola bercabang, sudah diverifikasi solvable lewat BFS)
+int maze1[GRID_SIZE][GRID_SIZE] = {
+    {1,1,1,1,0,1,1,1,1},
+    {1,0,0,0,0,0,0,0,1},
+    {1,0,1,1,1,1,1,0,1},
+    {1,0,0,0,0,0,1,0,1},
+    {1,0,1,1,1,1,1,0,1},
+    {1,0,1,0,0,0,1,0,1},
+    {1,0,1,0,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,1},
+    {1,1,1,1,0,1,1,1,1}
+};
+
+// data maze 2, layout beda buat ganti level
+// (pola bercabang berbeda, sudah diverifikasi solvable lewat BFS)
+int maze2[GRID_SIZE][GRID_SIZE] = {
+    {1,1,1,1,0,1,1,1,1},
+    {1,0,0,0,0,0,0,0,1},
+    {1,0,1,1,1,0,1,0,1},
+    {1,0,0,0,1,0,1,0,1},
+    {1,1,1,0,1,0,1,1,1},
+    {1,0,0,0,0,0,0,0,1},
+    {1,0,1,0,1,1,1,0,1},
+    {1,0,1,0,0,0,0,0,1},
+    {1,1,1,1,0,1,1,1,1}
+};
+
+// pointer ke maze yang lagi aktif (awalnya nunjuk ke maze1)
+int (*currentMaze)[GRID_SIZE] = maze1;
+
+// penanda level berapa yang aktif (1 atau 2)
+int levelFlag = 1;
+
+// posisi player, mulai dari pintu masuk
+int playerX = ENTRANCE_X;
+int playerY = ENTRANCE_Y;
 
 // posisi NRP
-float nrpPosX = -5.0; 
-float nrpPosY = 0.0;
+int nrpX, nrpY;
 
-// Variable deteksi tabrakan
-bool checkMode = false;
-bool isColliding = false;
-float checkX = 0.0f;
-float checkY = 0.0f;
+// deklarasi fungsi
+void drawMaze();
+void drawPlayer();
+void drawNRP(int gridX, int gridY);
+void randomizeNRP();
+void resetLevel();
+bool isInsideGrid(int x, int y);
+bool isWall(int x, int y);
+void drawCell(int gridX, int gridY, float r, float g, float b);
 
-// Deklarasi fungsi cekTabrakan agar bisa dipanggil di randomizeNRP
-bool cekTabrakan(float nextX, float nextY);
-
-void Dinding(float left, float top, float right, float bottom)
+// gambar 1 kotak grid ukuran 1x1 pakai GL_QUADS
+void drawCell(int gridX, int gridY, float r, float g, float b)
 {
-    // Jika tidak sedang mode cek (sedang menggambar)
-    if (!checkMode) {
-        glBegin(GL_POLYGON);
-        glVertex2f(left, top);
-        glVertex2f(right, top);
-        glVertex2f(right, bottom);
-        glVertex2f(left, bottom);
-        glEnd();
-    } 
-    // Jika sedang dalam mode cek tabrakan
-    else {
-    float p_left   = checkX - 0.9f; 
-    float p_right  = checkX + 0.9f; 
-    float p_top    = checkY + 0.9f; 
-    float p_bottom = checkY - 0.9f; 
-
-    if (p_left < right && p_right > left && p_bottom < top && p_top > bottom) {
-        isColliding = true;
-    }
-}
-}
-
-void NRP(float x, float y)
-{
-    // Simpan status checkMode asli
-    bool tempMode = checkMode;
-
-    checkMode = false; 
-
-    glColor3f(0.0, 0.0, 1.0);
-    float s = 0.15;
-
-    // Angka 0
-    Dinding(x, y, x + s, y + 5 * s);
-    Dinding(x + 2 * s, y, x + 3 * s, y + 5 * s);
-    Dinding(x, y, x + 3 * s, y + s);
-    Dinding(x, y + 4 * s, x + 3 * s, y + 5 * s);
-
-    // Angka 3
-    float ox = x + 4 * s;
-    Dinding(ox, y, ox + 3 * s, y + s);
-    Dinding(ox, y + 2 * s, ox + 3 * s, y + 3 * s);
-    Dinding(ox, y + 4 * s, ox + 3 * s, y + 5 * s);
-    Dinding(ox + 2 * s, y, ox + 3 * s, y + 5 * s);
-
-    // Angka 4
-    ox = x + 8 * s;
-    Dinding(ox, y + 2 * s, ox + s, y + 5 * s);
-    Dinding(ox, y + 2 * s, ox + 3 * s, y + 3 * s);
-    Dinding(ox + 2 * s, y, ox + 3 * s, y + 5 * s);
-}
-
-void maze1()
-{
-    glColor3f(1.0, 0.0, 0.0);
-    // Border
-    Dinding(-18.0, 18.0, -1.5, 17.0);
-    Dinding(1.5, 18.0, 18.0, 17.0);
-    Dinding(-18.0, -17.0, -1.5, -18.0);
-    Dinding(1.5, -17.0, 18.0, -18.0);
-    Dinding(-18.0, 18.0, -17.0, -18.0);
-    Dinding(17.0, 18.0, 18.0, -18.0);  
-
-    // Maze dalam
-    Dinding(-14.5, 14.5, -5.5, 13.5);
-    Dinding(-2.5, 14.5, 2.5, 13.5);
-    Dinding(5.5, 14.5, 10.5, 13.5);
-    Dinding(13.5, 14.5, 17.0, 13.5);
-    Dinding(-17.0, 10.5, -13.5, 9.5);
-    Dinding(-10.5, 10.5, -5.5, 9.5);
-    Dinding(1.5, 10.5, 6.5, 9.5);
-    Dinding(9.5, 10.5, 17.0, 9.5);
-    Dinding(-17.0, 6.5, -9.5, 5.5);
-    Dinding(-6.5, 6.5, 2.5, 5.5);
-    Dinding(5.5, 6.5, 14.5, 5.5);
-    Dinding(-14.5, 2.5, -5.5, 1.5);
-    Dinding(-2.5, 2.5, 2.5, 1.5);
-    Dinding(-17.0, -1.5, -5.5, -2.5);
-    Dinding(1.5, -1.5, 10.5, -2.5);
-    Dinding(9.5, -1.5, 14.5, -2.5);
-    Dinding(-14.5, -5.5, -9.5, -6.5);
-    Dinding(-10.5, -5.5, -1.5, -6.5);
-    Dinding(1.5, -5.5, 10.5, -6.5);
-    Dinding(13.5, -5.5, 17.0, -6.5);
-    Dinding(-6.5, -9.5, 1.5, -10.5);
-    Dinding(-17.0, -9.5, -9.5, -10.5);
-    Dinding(1.5, -9.5, 6.5, -10.5);
-    Dinding(9.5, -9.5, 14.5, -10.5);
-    Dinding(-17.0, -13.5, -13.5, -14.5);
-    Dinding(-10.5, -13.5, -1.5, -14.5);
-    Dinding(5.5, -13.5, 10.5, -14.5);
-    Dinding(-14.5, 14.5, -13.5, 9.5);
-    Dinding(-14.5, 2.5, -13.5, -6.5);
-    Dinding(-14.5, -9.5, -13.5, -14.5);
-    Dinding(-10.5, 17.0, -9.5, 13.5);
-    Dinding(-10.5, 10.5, -9.5, 5.5);
-    Dinding(-10.5, -1.5, -9.5, -6.5);
-    Dinding(-10.5, -9.5, -9.5, -14.5);
-    Dinding(-6.5, 10.5, -5.5, 5.5);
-    Dinding(-6.5, 6.5, -5.5, 1.5);
-    Dinding(-6.5, -5.5, -5.5, -10.5);
-    Dinding(-2.5, 14.5, -1.5, 9.5);
-    Dinding(-2.5, 6.5, -1.5, -2.5);
-    Dinding(5.5, 10.5, 6.5, 5.5);
-    Dinding(5.5, 6.5, 6.5, -10.5);
-    Dinding(9.5, 14.5, 10.5, 9.5);
-    Dinding(9.5, 6.5, 10.5, 1.5);
-    Dinding(9.5, -1.5, 10.5, -6.5);
-    Dinding(9.5, -9.5, 10.5, -14.5);
-    Dinding(13.5, 6.5, 14.5, 1.5);
-    Dinding(13.5, 2.5, 14.5, -2.5);
-}
-
-void maze2()
-{
-    glColor3f(0.0, 0.0, 1.0);
-    // Border
-    Dinding(-18.0, 18.0, -1.5, 17.0);
-    Dinding(1.5, 18.0, 18.0, 17.0);
-    Dinding(-18.0, -17.0, -1.5, -18.0);
-    Dinding(1.5, -17.0, 18.0, -18.0);
-    Dinding(-18.0, 18.0, -17.0, -18.0); 
-    Dinding(17.0, 18.0, 18.0, -18.0); 
-
-    // Maze horizontal dalam
-    Dinding(-18.0, 14.5, -13.5, 13.5);
-    Dinding(-6.5, 14.5, -1.5, 13.5);
-    Dinding(1.5, 14.5, 6.5, 13.5);
-    Dinding(13.5, 14.5, 18.0, 13.5);
-    Dinding(-14.5, 10.5, -5.5, 9.5);
-    Dinding(5.5, 10.5, 14.5, 9.5);
-    Dinding(-18.0, 6.5, -13.5, 5.5);
-    Dinding(-2.5, 6.5, 2.5, 5.5);
-    Dinding(13.5, 6.5, 18.0, 5.5);
-    Dinding(-10.5, 2.5, -1.5, 1.5);
-    Dinding(1.5, 2.5, 10.5, 1.5);
-    Dinding(-18.0, -1.5, -9.5, -2.5);
-    Dinding(9.5, -1.5, 18.0, -2.5);
-    Dinding(-10.5, -5.5, -5.5, -6.5);
-    Dinding(-2.5, -5.5, 2.5, -6.5);
-    Dinding(5.5, -5.5, 10.5, -6.5);
-    Dinding(-18.0, -9.5, -13.5, -10.5);
-    Dinding(-6.5, -9.5, -1.5, -10.5);
-    Dinding(1.5, -9.5, 6.5, -10.5);
-    Dinding(13.5, -9.5, 18.0, -10.5);
-    Dinding(-14.5, -13.5, -9.5, -14.5);
-    Dinding(-2.5, -13.5, 2.5, -14.5);
-    Dinding(9.5, -13.5, 14.5, -14.5);
-
-    // Maze vertikal dalam
-    Dinding(-14.5, 14.5, -13.5, 9.5);
-    Dinding(-14.5, 6.5, -13.5, 1.5);
-    Dinding(-14.5, -1.5, -13.5, -6.5);
-    Dinding(-14.5, -9.5, -13.5, -14.5);
-    Dinding(-10.5, 18.0, -9.5, 13.5);
-    Dinding(-10.5, -13.5, -9.5, -18.0);
-    Dinding(-6.5, 10.5, -5.5, 5.5);
-    Dinding(-6.5, 2.5, -5.5, -2.5);
-    Dinding(-6.5, -5.5, -5.5, -10.5);
-    Dinding(-2.5, 14.5, -1.5, 9.5);
-    Dinding(-2.5, 2.5, -1.5, -2.5);
-    Dinding(-2.5, -9.5, -1.5, -14.5);
-    Dinding(1.5, 14.5, 2.5, 9.5);
-    Dinding(1.5, 2.5, 2.5, -2.5);
-    Dinding(1.5, -9.5, 2.5, -14.5);
-    Dinding(5.5, 10.5, 6.5, 5.5);
-    Dinding(5.5, 2.5, 6.5, -2.5);
-    Dinding(5.5, -5.5, 6.5, -10.5);
-    Dinding(9.5, 18.0, 10.5, 13.5);
-    Dinding(9.5, -13.5, 10.5, -18.0);
-    Dinding(13.5, 14.5, 14.5, 9.5);
-    Dinding(13.5, 6.5, 14.5, 1.5);
-    Dinding(13.5, -1.5, 14.5, -6.5);
-    Dinding(13.5, -9.5, 14.5, -14.5);
-}
-
-// Random NRP
-void randomizeNRP()
-{ 
-    float randX, randY;
-    bool aman = false;
-
-    // Loop sampai posisi NRP tidak menabrak dinding
-    while (!aman) {
-        // Acak koordinat antara -15 sampai 15
-        randX = (float)(rand() % 300) / 10.0 - 15.0;
-        randY = (float)(rand() % 300) / 10.0 - 15.0;
-
-        // Gunakan fungsi cekTabrakan untuk verifikasi posisi baru
-        if (!cekTabrakan(randX, randY)) {
-            nrpPosX = randX;
-            nrpPosY = randY;
-            aman = true; 
-        }
-    }
-}
-
-// Fungsi cek tabrakan
-bool cekTabrakan(float nextX, float nextY)
-{
-    // cek apakah ada dinding
-    checkMode = true;
-    isColliding = false;
-    checkX = nextX;
-    checkY = nextY;
-
-    // Panggil maze
-    if (currentMaze == 1) maze1();
-    else maze2();
-
-    // matikan fungsi
-    checkMode = false;
-
-    return isColliding;
-}
-
-void display()
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    if (currentMaze == 1) {
-        maze1();
-    } else {
-        maze2();
-    }
-
-    // Gambar NRP
-    NRP(nrpPosX, nrpPosY);
-
-    // Player
-    glBegin(GL_POLYGON);
-    glColor3f(0.0, 0.0, 0.0);
-    glVertex2f(-0.9 + postX, 0.9 + postY);
-    glVertex2f(0.9 + postX, 0.9 + postY);
-    glVertex2f(0.9 + postX, -0.9 + postY);
-    glVertex2f(-0.9 + postX, -0.9 + postY);
+    glColor3f(r, g, b);
+    glBegin(GL_QUADS);
+        glVertex2f((float)gridX,       (float)gridY);
+        glVertex2f((float)gridX + 1.0f, (float)gridY);
+        glVertex2f((float)gridX + 1.0f, (float)gridY + 1.0f);
+        glVertex2f((float)gridX,       (float)gridY + 1.0f);
     glEnd();
-
-    glFlush();
 }
 
-void myinit()
+// gambar lantai maze (tembok dan jalan)
+void drawMaze()
 {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-18.0, 18.0, -18.0, 18.0);
-    glMatrixMode(GL_MODELVIEW);
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-}
-
-void input(unsigned char key, int x, int y)
-{
-    if (key == 'q' || key == 'Q') exit(0);
-
-    float nextX = postX;
-    float nextY = postY;
-
-    if (key == 'w' || key == 'W') nextY += 0.5;
-    if (key == 's' || key == 'S') nextY -= 0.5;
-    if (key == 'a' || key == 'A') nextX -= 0.5;
-    if (key == 'd' || key == 'D') nextX += 0.5;
-
-    // Cek apakah posisi ini berpotensi menabrak dinding, jika tidak maka update posisi
-    if (nextX != postX || nextY != postY) {
-        if (!cekTabrakan(nextX, nextY)) {
-            postX = nextX;
-            postY = nextY;
+    for (int y = 0; y < GRID_SIZE; y++)
+    {
+        for (int x = 0; x < GRID_SIZE; x++)
+        {
+            if (currentMaze[y][x] == 1)
+            {
+                // tembok, warna gelap
+                drawCell(x, y, 0.2f, 0.2f, 0.2f);
+            }
+            else
+            {
+                // jalan, warna terang
+                drawCell(x, y, 0.85f, 0.85f, 0.85f);
+            }
         }
     }
+}
 
-    if (key == 'c' || key == 'C')
+// gambar player jadi kotak biru
+void drawPlayer()
+{
+    float margin = 0.15f;
+
+    glColor3f(0.1f, 0.3f, 0.9f);
+    glBegin(GL_QUADS);
+        glVertex2f(playerX + margin,        playerY + margin);
+        glVertex2f(playerX + 1.0f - margin, playerY + margin);
+        glVertex2f(playerX + 1.0f - margin, playerY + 1.0f - margin);
+        glVertex2f(playerX + margin,        playerY + 1.0f - margin);
+    glEnd();
+}
+
+// ===================================================
+// GAMBAR ANGKA NRP "034" PAKAI GAYA SEVEN SEGMENT
+// tiap angka dibentuk dari beberapa kotak kecil
+// (GL_QUADS), bukan ditimpa/dilubangi warna background
+// ===================================================
+
+// gambar 1 batang segmen (kotak kecil) dari titik (x1,y1) ke (x2,y2)
+void gambarSegmen(float x1, float y1, float x2, float y2)
+{
+    glBegin(GL_QUADS);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y1);
+        glVertex2f(x2, y2);
+        glVertex2f(x1, y2);
+    glEnd();
+}
+
+// angka 0, butuh 4 kotak: atas, bawah, kiri penuh, kanan penuh
+void gambarAngka0(float baseX, float baseY, float lebar, float tinggi)
+{
+    float tebal = 0.04f;
+    float kiri  = baseX;
+    float kanan = baseX + lebar;
+    float bawah = baseY;
+    float atas  = baseY + tinggi;
+
+    glColor3f(1.0f, 0.8f, 0.0f); // warna kuning oranye
+
+    gambarSegmen(kiri, atas - tebal, kanan, atas);     // batang atas
+    gambarSegmen(kiri, bawah, kanan, bawah + tebal);   // batang bawah
+    gambarSegmen(kiri, bawah, kiri + tebal, atas);     // batang kiri (penuh)
+    gambarSegmen(kanan - tebal, bawah, kanan, atas);   // batang kanan (penuh)
+}
+
+// angka 3, butuh 5 kotak: atas, tengah, bawah, kanan atas, kanan bawah
+void gambarAngka3(float baseX, float baseY, float lebar, float tinggi)
+{
+    float tebal  = 0.04f;
+    float kiri   = baseX;
+    float kanan  = baseX + lebar;
+    float bawah  = baseY;
+    float atas   = baseY + tinggi;
+    float tengah = baseY + tinggi / 2.0f;
+
+    glColor3f(1.0f, 0.8f, 0.0f);
+
+    gambarSegmen(kiri, atas - tebal, kanan, atas);                          // batang atas
+    gambarSegmen(kiri, tengah - tebal / 2.0f, kanan, tengah + tebal / 2.0f); // batang tengah
+    gambarSegmen(kiri, bawah, kanan, bawah + tebal);                        // batang bawah
+    gambarSegmen(kanan - tebal, tengah, kanan, atas);                       // batang kanan atas
+    gambarSegmen(kanan - tebal, bawah, kanan, tengah);                      // batang kanan bawah
+}
+
+// angka 4, butuh 3 kotak: kiri atas, tengah, kanan penuh
+void gambarAngka4(float baseX, float baseY, float lebar, float tinggi)
+{
+    float tebal  = 0.04f;
+    float kiri   = baseX;
+    float kanan  = baseX + lebar;
+    float bawah  = baseY;
+    float atas   = baseY + tinggi;
+    float tengah = baseY + tinggi / 2.0f;
+
+    glColor3f(1.0f, 0.8f, 0.0f);
+
+    gambarSegmen(kiri, tengah, kiri + tebal, atas);                         // batang kiri atas
+    gambarSegmen(kiri, tengah - tebal / 2.0f, kanan, tengah + tebal / 2.0f); // batang tengah
+    gambarSegmen(kanan - tebal, bawah, kanan, atas);                        // batang kanan (penuh)
+}
+
+// gambar tulisan NRP "034" di dalam satu kotak grid (gridX, gridY)
+void drawNRP(int gridX, int gridY)
+{
+    float lebarAngka  = 0.22f;
+    float tinggiAngka = 0.55f;
+    float jarak       = 0.05f;
+
+    // hitung total lebar 3 angka + jarak, biar bisa ditengahkan di kotak
+    float totalLebar = (lebarAngka * 3) + (jarak * 2);
+    float marginKiri = (1.0f - totalLebar) / 2.0f;
+
+    float baseY = gridY + (1.0f - tinggiAngka) / 2.0f;
+
+    float x0 = gridX + marginKiri;
+    float x1 = x0 + lebarAngka + jarak;
+    float x2 = x1 + lebarAngka + jarak;
+
+    gambarAngka0(x0, baseY, lebarAngka, tinggiAngka);
+    gambarAngka3(x1, baseY, lebarAngka, tinggiAngka);
+    gambarAngka4(x2, baseY, lebarAngka, tinggiAngka);
+}
+
+// cek apakah koordinat (x,y) masih di dalam grid 0-8
+bool isInsideGrid(int x, int y)
+{
+    return (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE);
+}
+
+// cek apakah sel (x,y) di maze aktif adalah tembok
+bool isWall(int x, int y)
+{
+    return (currentMaze[y][x] == 1);
+}
+
+// acak posisi NRP baru, harus jalan, bukan pintu masuk/keluar, bukan posisi player
+void randomizeNRP()
+{
+    do
     {
-        currentMaze = (currentMaze == 1) ? 2 : 1;
-        randomizeNRP(); // Acak ulang posisi NRP saat ganti maze
-        postX = 0.0;
-        postY = 17.0;
+        nrpX = rand() % GRID_SIZE;
+        nrpY = rand() % GRID_SIZE;
     }
+    while (
+        currentMaze[nrpY][nrpX] != 0 ||
+        (nrpX == ENTRANCE_X && nrpY == ENTRANCE_Y) ||
+        (nrpX == EXIT_X     && nrpY == EXIT_Y)     ||
+        (nrpX == playerX    && nrpY == playerY)
+    );
+}
+
+// reset player ke pintu masuk, lalu acak ulang NRP
+void resetLevel()
+{
+    playerX = ENTRANCE_X;
+    playerY = ENTRANCE_Y;
+    randomizeNRP();
+}
+
+// baca input keyboard buat gerak player dan ganti level
+void keyboard(unsigned char key, int x, int y)
+{
+    int dx = 0, dy = 0;
+
+    switch (key)
+    {
+        case 'w': case 'W': dy =  1; break; // gerak ke atas
+        case 's': case 'S': dy = -1; break; // gerak ke bawah
+        case 'a': case 'A': dx = -1; break; // gerak ke kiri
+        case 'd': case 'D': dx =  1; break; // gerak ke kanan
+
+        case 'c': case 'C':
+        {
+            // ganti maze aktif (toggle 1 <-> 2)
+            if (levelFlag == 1)
+            {
+                currentMaze = maze2;
+                levelFlag = 2;
+            }
+            else
+            {
+                currentMaze = maze1;
+                levelFlag = 1;
+            }
+
+            resetLevel();
+            glutPostRedisplay();
+            return;
+        }
+
+        default:
+            return;
+    }
+
+    int newX = playerX + dx;
+    int newY = playerY + dy;
+
+    // cek keluar batas grid
+    if (!isInsideGrid(newX, newY))
+    {
+        return;
+    }
+
+    // cek nabrak tembok
+    if (isWall(newX, newY))
+    {
+        return;
+    }
+
+    // gerakan valid, update posisi player
+    playerX = newX;
+    playerY = newY;
 
     glutPostRedisplay();
 }
 
-int main(int argc, char *argv[])
+// dipanggil GLUT tiap kali layar perlu digambar ulang
+void display()
 {
-    srand(time(NULL));
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    drawMaze();
+    drawNRP(nrpX, nrpY);
+    drawPlayer();
+
+    glutSwapBuffers();
+}
+
+// inisialisasi awal sebelum game jalan
+void myinit()
+{
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, 9.0, 0.0, 9.0); // dunia 2D 9x9, 1 unit = 1 kotak grid
+    glMatrixMode(GL_MODELVIEW);
+
+    srand(time(NULL)); // seed random sekali di awal program
+
+    randomizeNRP();
+}
+
+int main(int argc, char** argv)
+{
+    cout << "Maze 2D - Grid 9x9" << endl;
+    cout << "W A S D untuk gerak, C untuk ganti level" << endl;
 
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutInitWindowSize(750, 750);
-    glutCreateWindow("Maze Game - NRP Random Safe");
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(600, 600);
+    glutCreateWindow("Maze 2D - Grid 9x9");
 
     myinit();
-    
-    // Panggil random NRP setelah init agar OpenGL context siap
-    randomizeNRP();
 
     glutDisplayFunc(display);
-    glutKeyboardFunc(input);
+    glutKeyboardFunc(keyboard);
 
     glutMainLoop();
     return 0;
