@@ -87,19 +87,51 @@ bool isInsideGrid(int x, int y);
 bool isWall(int x, int y);
 void drawCell(int gridX, int gridY, float r, float g, float b);
 
-// gambar 1 kotak grid ukuran 1x1 pakai GL_QUADS
-void drawCell(int gridX, int gridY, float r, float g, float b)
+void drawCell(int gridX, int gridY, float r, float g, float b, bool isWallCell)
 {
-    glColor3f(r, g, b);
-    glBegin(GL_QUADS);
-        glVertex2f((float)gridX,       (float)gridY);
-        glVertex2f((float)gridX + 1.0f, (float)gridY);
-        glVertex2f((float)gridX + 1.0f, (float)gridY + 1.0f);
-        glVertex2f((float)gridX,       (float)gridY + 1.0f);
-    glEnd();
-}
+    float wallHeight = 1.0f; // tinggi tembok di sumbu Z
 
-// gambar lantai maze (tembok dan jalan)
+    if (isWallCell)
+    {
+        // --- SISI ATAS TEMBOK (top face) ---
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glBegin(GL_QUADS);
+            glVertex3f((float)gridX,        (float)gridY,        wallHeight);
+            glVertex3f((float)gridX + 1.0f, (float)gridY,        wallHeight);
+            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, wallHeight);
+            glVertex3f((float)gridX,        (float)gridY + 1.0f, wallHeight);
+        glEnd();
+
+        // --- SISI DEPAN TEMBOK (menghadap kamera di Y rendah) ---
+        glColor3f(0.5f, 0.5f, 0.5f);
+        glBegin(GL_QUADS);
+            glVertex3f((float)gridX,        (float)gridY, 0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY, wallHeight);
+            glVertex3f((float)gridX,        (float)gridY, wallHeight);
+        glEnd();
+
+        // --- SISI KANAN TEMBOK ---
+        glColor3f(0.5f, 0.5f, 0.5f);
+        glBegin(GL_QUADS);
+            glVertex3f((float)gridX + 1.0f, (float)gridY,        0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, 0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, wallHeight);
+            glVertex3f((float)gridX + 1.0f, (float)gridY,        wallHeight);
+        glEnd();
+    }
+    else
+    {
+        // Jalan tetap datar di Z=0, sama seperti sebelumnya
+        glColor3f(0.05f, 0.05f, 0.2f);
+        glBegin(GL_QUADS);
+            glVertex3f((float)gridX,        (float)gridY,        0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY,        0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, 0.0f);
+            glVertex3f((float)gridX,        (float)gridY + 1.0f, 0.0f);
+        glEnd();
+    }
+}
 void drawMaze()
 {
     for (int y = 0; y < GRID_SIZE; y++)
@@ -108,29 +140,29 @@ void drawMaze()
         {
             if (currentMaze[y][x] == 1)
             {
-                // tembok, warna gelap
-                drawCell(x, y, 0.2f, 0.2f, 0.2f);
+                // UBAH: tambah parameter true untuk isWallCell
+                drawCell(x, y, 0.2f, 0.2f, 0.2f, true);
             }
             else
             {
-                // jalan, warna terang
-                drawCell(x, y, 0.85f, 0.85f, 0.85f);
+                // UBAH: tambah parameter false
+                drawCell(x, y, 0.85f, 0.85f, 0.85f, false);
             }
         }
     }
 }
 
-// gambar player jadi kotak biru
 void drawPlayer()
 {
     float margin = 0.15f;
+    float z = 0.01f; // sedikit di atas lantai
 
     glColor3f(0.1f, 0.3f, 0.9f);
     glBegin(GL_QUADS);
-        glVertex2f(playerX + margin,        playerY + margin);
-        glVertex2f(playerX + 1.0f - margin, playerY + margin);
-        glVertex2f(playerX + 1.0f - margin, playerY + 1.0f - margin);
-        glVertex2f(playerX + margin,        playerY + 1.0f - margin);
+        glVertex3f(playerX + margin,        playerY + margin,        z);
+        glVertex3f(playerX + 1.0f - margin, playerY + margin,        z);
+        glVertex3f(playerX + 1.0f - margin, playerY + 1.0f - margin, z);
+        glVertex3f(playerX + margin,        playerY + 1.0f - margin, z);
     glEnd();
 }
 
@@ -141,13 +173,13 @@ void drawPlayer()
 // ===================================================
 
 // gambar 1 batang segmen (kotak kecil) dari titik (x1,y1) ke (x2,y2)
-void gambarSegmen(float x1, float y1, float x2, float y2)
+void gambarSegmen(float x1, float y1, float x2, float y2, float z = 0.02f)
 {
     glBegin(GL_QUADS);
-        glVertex2f(x1, y1);
-        glVertex2f(x2, y1);
-        glVertex2f(x2, y2);
-        glVertex2f(x1, y2);
+        glVertex3f(x1, y1, z);
+        glVertex3f(x2, y1, z);
+        glVertex3f(x2, y2, z);
+        glVertex3f(x1, y2, z);
     glEnd();
 }
 
@@ -322,8 +354,7 @@ void keyboard(unsigned char key, int x, int y)
 // dipanggil GLUT tiap kali layar perlu digambar ulang
 void display()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     drawMaze();
     drawNRP(nrpX, nrpY);
     drawPlayer();
@@ -338,9 +369,11 @@ void myinit()
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0.0, (double)GRID_SIZE, 0.0, (double)GRID_SIZE); // dunia 2D 19x19, 1 unit = 1 kotak grid
+    glOrtho(0.0, (double)GRID_SIZE, 0.0, (double)GRID_SIZE, -10.0, 10.0);
     glMatrixMode(GL_MODELVIEW);
-
+    glEnable(GL_DEPTH_TEST);   // aktifkan depth test untuk 3D
+    glEnable(GL_BLEND);        // aktifkan blending untuk transparansi
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     srand(time(NULL)); // seed random sekali di awal program
 
     randomizeNRP();
@@ -348,13 +381,13 @@ void myinit()
 
 int main(int argc, char** argv)
 {
-    cout << "Maze 2D - Grid 19x19" << endl;
+    cout << "Maze 3D" << endl;
     cout << "W A S D untuk gerak, C untuk ganti level" << endl;
 
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(600, 600);
-    glutCreateWindow("Maze 2D - Grid 19x19");
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(800, 800);
+    glutCreateWindow("Maze 3D");
 
     myinit();
 
