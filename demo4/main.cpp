@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <cmath>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -9,7 +10,6 @@
 #include <time.h>
 using namespace std;
 
-// ukuran grid maze 19x19
 const int GRID_SIZE = 19;
 
 // posisi pintu masuk (atas tengah) dan pintu keluar (bawah tengah)
@@ -105,6 +105,21 @@ GLfloat warnaSpecularMalam[] = {0.4f, 0.4f, 0.5f, 1.0f};
 
 GLfloat warnaHitam[] = {0.0f, 0.0f, 0.0f, 1.0f}; // dipakai waktu komponen di-OFF
 
+// MODE VIEW: 0 = orthogonal, 1 = isometric, 2 = kamera FPS
+int viewMode = 0;
+
+// posisi dan arah kamera FPS
+float camX = ENTRANCE_X + 0.5f;
+float camY = ENTRANCE_Y + 0.5f;
+float camZ = 0.5f;
+float camAngle = 270.0f; // menghadap ke arah -Y (ke dalam maze)
+
+// flag transparansi lantai
+bool wallTransparent = false;
+
+// flag tabrakan NRP
+bool nrpCollided = false; 
+
 // deklarasi fungsi
 void drawMaze();
 void drawPlayer();
@@ -124,44 +139,45 @@ void drawCell(int gridX, int gridY, float r, float g, float b, bool isWallCell)
         float x1 = (float)gridX,        x2 = (float)gridX + 1.0f;
         float y1 = (float)gridY,        y2 = (float)gridY + 1.0f;
         float z1 = 0.0f,                z2 = wallHeight;
+        float alpha = wallTransparent ? 0.5f : 1.0f;
 
         // sisi atas - paling terang (seolah kena cahaya langsung dari atas)
-        glColor3f(0.85f, 0.85f, 0.85f);
+        glColor4f(0.85f, 0.85f, 0.85f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x1, y1, z2); glVertex3f(x2, y1, z2);
             glVertex3f(x2, y2, z2); glVertex3f(x1, y2, z2);
         glEnd();
 
         // sisi depan (y1) - medium terang
-        glColor3f(0.55f, 0.55f, 0.55f);
+        glColor4f(0.55f, 0.55f, 0.55f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x1, y1, z1); glVertex3f(x2, y1, z1);
             glVertex3f(x2, y1, z2); glVertex3f(x1, y1, z2);
         glEnd();
 
         // sisi kanan (x2) - medium, sedikit lebih gelap dari depan
-        glColor3f(0.45f, 0.45f, 0.45f);
+        glColor4f(0.45f, 0.45f, 0.45f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x2, y1, z1); glVertex3f(x2, y2, z1);
             glVertex3f(x2, y2, z2); glVertex3f(x2, y1, z2);
         glEnd();
 
         // sisi belakang (y2) - gelap (sisi "bayangan")
-        glColor3f(0.3f, 0.3f, 0.3f);
+        glColor4f(0.3f, 0.3f, 0.3f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x2, y2, z1); glVertex3f(x1, y2, z1);
             glVertex3f(x1, y2, z2); glVertex3f(x2, y2, z2);
         glEnd();
 
         // sisi kiri (x1) - paling gelap
-        glColor3f(0.25f, 0.25f, 0.25f);
+        glColor4f(0.25f, 0.25f, 0.25f,alpha);
         glBegin(GL_QUADS);
             glVertex3f(x1, y2, z1); glVertex3f(x1, y1, z1);
             glVertex3f(x1, y1, z2); glVertex3f(x1, y2, z2);
         glEnd();
 
         // sisi bawah - gelap total (nempel lantai, jarang kelihatan)
-        glColor3f(0.15f, 0.15f, 0.15f);
+        glColor4f(0.15f, 0.15f, 0.15f,alpha);
         glBegin(GL_QUADS);
             glVertex3f(x1, y1, z1); glVertex3f(x2, y1, z1);
             glVertex3f(x2, y2, z1); glVertex3f(x1, y2, z1);
@@ -407,8 +423,6 @@ void gambarAngka4_3D(float baseX, float baseY, float lebar, float tinggi,
     gambarSegmen3D(kanan - tebal, bawah, kanan, atas, zBelakang, zDepan);
 }
 
-// gambar tulisan NRP "034" di dalam satu kotak grid (gridX, gridY)
-// versi 2D (kode lama kamu, tidak diubah) - dipakai di mode orthogonal
 void drawNRP_2D(int gridX, int gridY)
 {
     float lebarAngka = 0.22f;
@@ -568,7 +582,18 @@ void keyboard(unsigned char key, int x, int y)
     case 'v':
     case 'V':
     {
-        isIsometricMode = !isIsometricMode;
+        viewMode = (viewMode + 1) % 3; // siklus 0 -> 1 -> 2 -> 0
+
+        isIsometricMode = (viewMode == 1); // sinkron flag lama
+
+        if (viewMode == 2) // pertama masuk mode kamera, reset posisi
+        {
+            camX = ENTRANCE_X + 0.5f;
+            camY = ENTRANCE_Y + 0.5f;
+            camZ = 0.5f;
+            camAngle = 270.0f;
+        }
+
         glutPostRedisplay();
         return;
     }
@@ -633,6 +658,12 @@ void keyboard(unsigned char key, int x, int y)
         return;
     }
 
+    case '5':
+    {
+        wallTransparent = !wallTransparent;
+        glutPostRedisplay();
+        return;
+    }
     default:
         return;
     }
@@ -655,7 +686,13 @@ void keyboard(unsigned char key, int x, int y)
     // gerakan valid, update posisi player
     playerX = newX;
     playerY = newY;
-
+    if (!nrpCollided && playerX == nrpX && playerY == nrpY)
+    {
+        nrpCollided = true;
+        cout << "Tabrakan dengan NRP!" << endl;
+        randomizeNRP();      // pindah NRP ke posisi baru
+        nrpCollided = false; // reset supaya bisa deteksi lagi
+    }
     glutPostRedisplay();
 }
 
@@ -714,14 +751,18 @@ void setupView()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    if (isIsometricMode)
+    if (viewMode == 2) // kamera FPS
     {
-        double half = (double)GRID_SIZE * 0.75; // bisa diatur buat zoom
+        gluPerspective(65.0, 1.0, 0.1, 100.0);
+    }
+    else if (viewMode == 1) // isometric
+    {
+        double half = (double)GRID_SIZE * 0.75;
         glOrtho(centerX - half, centerX + half,
                 centerY - half, centerY + half,
                 -50.0, 50.0);
     }
-    else
+    else // orthogonal
     {
         glOrtho(0.0, (double)GRID_SIZE, 0.0, (double)GRID_SIZE, -10.0, 10.0);
     }
@@ -729,7 +770,16 @@ void setupView()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    if (isIsometricMode)
+    if (viewMode == 2) // kamera FPS
+    {
+        float rad = camAngle * 3.14159f / 180.0f;
+        float lookX = camX + cos(rad);
+        float lookY = camY + sin(rad);
+        gluLookAt(camX, camY, camZ,
+                  lookX, lookY, camZ,
+                  0.0f, 0.0f, 1.0f);
+    }
+    else if (viewMode == 1) // isometric
     {
         glTranslatef(centerX, centerY, 0.0f);
         glRotatef(mazeTiltX, 1.0f, 0.0f, 0.0f);
@@ -737,7 +787,6 @@ void setupView()
         glTranslatef(-centerX, -centerY, 0.0f);
     }
 }
-
 // dipanggil GLUT tiap kali layar perlu digambar ulang
 void display()
 {
@@ -789,7 +838,48 @@ glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 
     randomizeNRP();
 }
+void specialKey(int key, int x, int y)
+{
+    if (viewMode != 2) return; // hanya aktif di mode kamera
 
+    float step = 0.3f;
+    float turnStep = 5.0f;
+    float rad = camAngle * 3.14159f / 180.0f;
+
+    float newX = camX;
+    float newY = camY;
+
+    switch (key)
+    {
+    case GLUT_KEY_UP:    // maju
+        newX = camX + step * cos(rad);
+        newY = camY + step * sin(rad);
+        break;
+    case GLUT_KEY_DOWN:  // mundur
+        newX = camX - step * cos(rad);
+        newY = camY - step * sin(rad);
+        break;
+    case GLUT_KEY_LEFT:  // putar kiri
+        camAngle += turnStep;
+        glutPostRedisplay();
+        return;
+    case GLUT_KEY_RIGHT: // putar kanan
+        camAngle -= turnStep;
+        glutPostRedisplay();
+        return;
+    }
+
+    // cek tabrakan tembok sebelum gerak
+    int gridX = (int)newX;
+    int gridY = (int)newY;
+    if (isInsideGrid(gridX, gridY) && !isWall(gridX, gridY))
+    {
+        camX = newX;
+        camY = newY;
+    }
+
+    glutPostRedisplay();
+}
 int main(int argc, char **argv)
 {
     cout << "Maze 3D" << endl;
@@ -804,6 +894,7 @@ int main(int argc, char **argv)
 
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
+    glutSpecialFunc(specialKey);
     glutMouseFunc(mouse);
     glutTimerFunc(16, timer, 0);
 
