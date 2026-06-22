@@ -87,6 +87,23 @@ bool isIsometricMode = false;
 float mazeTiltX = 50.0f;  // tilt/pitch (tombol i/k)
 float mazeYawZ = 45.0f;   // yaw/putar mendatar (tombol j/l)
 float mazeRotStep = 5.0f; // besar perubahan tiap penekanan tombol
+// status on/off tiap komponen cahaya
+bool ambientOn = true;
+bool diffuseOn = true;
+bool specularOn = true;
+// mode siang/malam: false = siang, true = malam
+bool isNightMode = false;
+
+GLfloat warnaAmbientSiang[] = {0.4f, 0.4f, 0.4f, 1.0f};
+GLfloat warnaDiffuseSiang[] = {0.8f, 0.8f, 0.7f, 1.0f};
+GLfloat warnaSpecularSiang[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+// warna komponen cahaya mode MALAM (lebih redup/kebiruan)
+GLfloat warnaAmbientMalam[] = {0.08f, 0.08f, 0.12f, 1.0f};
+GLfloat warnaDiffuseMalam[] = {0.2f, 0.2f, 0.35f, 1.0f};
+GLfloat warnaSpecularMalam[] = {0.4f, 0.4f, 0.5f, 1.0f};
+
+GLfloat warnaHitam[] = {0.0f, 0.0f, 0.0f, 1.0f}; // dipakai waktu komponen di-OFF
 
 // deklarasi fungsi
 void drawMaze();
@@ -100,11 +117,11 @@ void gambarBalok(float x1, float y1, float z1, float x2, float y2, float z2);
 
 void drawCell(int gridX, int gridY, float r, float g, float b, bool isWallCell)
 {
-    float wallHeight = 1.0f; // tinggi tembok di sumbu Z
+    float wallHeight = 1.0f;
 
     if (isWallCell)
     {
-        // --- SISI ATAS TEMBOK (top face) ---
+        // sisi atas: selalu digambar (tidak ada yang nutup dari atas)
         glColor3f(1.0f, 1.0f, 1.0f);
         glBegin(GL_QUADS);
         glVertex3f((float)gridX, (float)gridY, wallHeight);
@@ -113,23 +130,31 @@ void drawCell(int gridX, int gridY, float r, float g, float b, bool isWallCell)
         glVertex3f((float)gridX, (float)gridY + 1.0f, wallHeight);
         glEnd();
 
-        // --- SISI DEPAN TEMBOK (menghadap kamera di Y rendah) ---
-        glColor3f(0.5f, 0.5f, 0.5f);
-        glBegin(GL_QUADS);
-        glVertex3f((float)gridX, (float)gridY, 0.0f);
-        glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
-        glVertex3f((float)gridX + 1.0f, (float)gridY, wallHeight);
-        glVertex3f((float)gridX, (float)gridY, wallHeight);
-        glEnd();
+        // sisi depan: cuma gambar kalau tetangga di y-1 BUKAN tembok (atau di luar grid)
+        bool tetanggaDepanTembok = isInsideGrid(gridX, gridY - 1) && isWall(gridX, gridY - 1);
+        if (!tetanggaDepanTembok)
+        {
+            glColor3f(0.5f, 0.5f, 0.5f);
+            glBegin(GL_QUADS);
+            glVertex3f((float)gridX, (float)gridY, 0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY, wallHeight);
+            glVertex3f((float)gridX, (float)gridY, wallHeight);
+            glEnd();
+        }
 
-        // --- SISI KANAN TEMBOK ---
-        glColor3f(0.5f, 0.5f, 0.5f);
-        glBegin(GL_QUADS);
-        glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
-        glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, 0.0f);
-        glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, wallHeight);
-        glVertex3f((float)gridX + 1.0f, (float)gridY, wallHeight);
-        glEnd();
+        // sisi kanan: cuma gambar kalau tetangga di x+1 BUKAN tembok (atau di luar grid)
+        bool tetanggaKananTembok = isInsideGrid(gridX + 1, gridY) && isWall(gridX + 1, gridY);
+        if (!tetanggaKananTembok)
+        {
+            glColor3f(0.5f, 0.5f, 0.5f);
+            glBegin(GL_QUADS);
+            glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, 0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, wallHeight);
+            glVertex3f((float)gridX + 1.0f, (float)gridY, wallHeight);
+            glEnd();
+        }
     }
     else
     {
@@ -465,6 +490,26 @@ void resetLevel()
     randomizeNRP();
 }
 
+// terapkan status on/off + mode siang/malam ke GL_LIGHT0
+void updateLighting()
+{
+    // pilih palet warna sesuai mode siang/malam
+    GLfloat *ambientAktif = isNightMode ? warnaAmbientMalam : warnaAmbientSiang;
+    GLfloat *diffuseAktif = isNightMode ? warnaDiffuseMalam : warnaDiffuseSiang;
+    GLfloat *specularAktif = isNightMode ? warnaSpecularMalam : warnaSpecularSiang;
+
+    // kalau komponen di-OFF, kirim hitam (0,0,0,1) -> efeknya seperti dimatikan
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientOn ? ambientAktif : warnaHitam);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseOn ? diffuseAktif : warnaHitam);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specularOn ? specularAktif : warnaHitam);
+
+    // warna langit/background ikut berubah siang-malam
+    if (isNightMode)
+        glClearColor(0.02f, 0.02f, 0.06f, 1.0f);
+    else
+        glClearColor(0.55f, 0.75f, 0.95f, 1.0f);
+}
+
 // baca input keyboard buat gerak player dan ganti level
 void keyboard(unsigned char key, int x, int y)
 {
@@ -545,6 +590,34 @@ void keyboard(unsigned char key, int x, int y)
     {
         if (isIsometricMode)
             mazeTiltX += mazeRotStep;
+        glutPostRedisplay();
+        return;
+    }
+    case '1':
+    {
+        ambientOn = !ambientOn;
+        updateLighting();
+        glutPostRedisplay();
+        return;
+    }
+    case '2':
+    {
+        diffuseOn = !diffuseOn;
+        updateLighting();
+        glutPostRedisplay();
+        return;
+    }
+    case '3':
+    {
+        specularOn = !specularOn;
+        updateLighting();
+        glutPostRedisplay();
+        return;
+    }
+    case '4':
+    {
+        isNightMode = !isNightMode;
+        updateLighting();
         glutPostRedisplay();
         return;
     }
@@ -691,6 +764,16 @@ void myinit()
     glEnable(GL_DEPTH_TEST); // aktifkan depth test untuk 3D
     glEnable(GL_BLEND);      // aktifkan blending untuk transparansi
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // === scaffold lighting sementara, GANTI/GABUNG dengan punya teman yang ngerjain kriteria 1-3 ===
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_COLOR_MATERIAL);
+glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+
+    GLfloat posisiLampu[] = {9.5f, 9.5f, 15.0f, 1.0f}; // taruh di atas tengah maze, sementara
+    glLightfv(GL_LIGHT0, GL_POSITION, posisiLampu);
+
+    updateLighting();  // langsung terapkan status default (semua ON, mode siang)
     srand(time(NULL)); // seed random sekali di awal program
 
     randomizeNRP();
