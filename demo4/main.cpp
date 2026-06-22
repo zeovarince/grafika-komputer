@@ -121,49 +121,60 @@ void drawCell(int gridX, int gridY, float r, float g, float b, bool isWallCell)
 
     if (isWallCell)
     {
-        // sisi atas: selalu digambar (tidak ada yang nutup dari atas)
-        glColor3f(1.0f, 1.0f, 1.0f);
+        float x1 = (float)gridX,        x2 = (float)gridX + 1.0f;
+        float y1 = (float)gridY,        y2 = (float)gridY + 1.0f;
+        float z1 = 0.0f,                z2 = wallHeight;
+
+        // sisi atas - paling terang (seolah kena cahaya langsung dari atas)
+        glColor3f(0.85f, 0.85f, 0.85f);
         glBegin(GL_QUADS);
-        glVertex3f((float)gridX, (float)gridY, wallHeight);
-        glVertex3f((float)gridX + 1.0f, (float)gridY, wallHeight);
-        glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, wallHeight);
-        glVertex3f((float)gridX, (float)gridY + 1.0f, wallHeight);
+            glVertex3f(x1, y1, z2); glVertex3f(x2, y1, z2);
+            glVertex3f(x2, y2, z2); glVertex3f(x1, y2, z2);
         glEnd();
 
-        // sisi depan: cuma gambar kalau tetangga di y-1 BUKAN tembok (atau di luar grid)
-        bool tetanggaDepanTembok = isInsideGrid(gridX, gridY - 1) && isWall(gridX, gridY - 1);
-        if (!tetanggaDepanTembok)
-        {
-            glColor3f(0.5f, 0.5f, 0.5f);
-            glBegin(GL_QUADS);
-            glVertex3f((float)gridX, (float)gridY, 0.0f);
-            glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
-            glVertex3f((float)gridX + 1.0f, (float)gridY, wallHeight);
-            glVertex3f((float)gridX, (float)gridY, wallHeight);
-            glEnd();
-        }
+        // sisi depan (y1) - medium terang
+        glColor3f(0.55f, 0.55f, 0.55f);
+        glBegin(GL_QUADS);
+            glVertex3f(x1, y1, z1); glVertex3f(x2, y1, z1);
+            glVertex3f(x2, y1, z2); glVertex3f(x1, y1, z2);
+        glEnd();
 
-        // sisi kanan: cuma gambar kalau tetangga di x+1 BUKAN tembok (atau di luar grid)
-        bool tetanggaKananTembok = isInsideGrid(gridX + 1, gridY) && isWall(gridX + 1, gridY);
-        if (!tetanggaKananTembok)
-        {
-            glColor3f(0.5f, 0.5f, 0.5f);
-            glBegin(GL_QUADS);
-            glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
-            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, 0.0f);
-            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, wallHeight);
-            glVertex3f((float)gridX + 1.0f, (float)gridY, wallHeight);
-            glEnd();
-        }
+        // sisi kanan (x2) - medium, sedikit lebih gelap dari depan
+        glColor3f(0.45f, 0.45f, 0.45f);
+        glBegin(GL_QUADS);
+            glVertex3f(x2, y1, z1); glVertex3f(x2, y2, z1);
+            glVertex3f(x2, y2, z2); glVertex3f(x2, y1, z2);
+        glEnd();
+
+        // sisi belakang (y2) - gelap (sisi "bayangan")
+        glColor3f(0.3f, 0.3f, 0.3f);
+        glBegin(GL_QUADS);
+            glVertex3f(x2, y2, z1); glVertex3f(x1, y2, z1);
+            glVertex3f(x1, y2, z2); glVertex3f(x2, y2, z2);
+        glEnd();
+
+        // sisi kiri (x1) - paling gelap
+        glColor3f(0.25f, 0.25f, 0.25f);
+        glBegin(GL_QUADS);
+            glVertex3f(x1, y2, z1); glVertex3f(x1, y1, z1);
+            glVertex3f(x1, y1, z2); glVertex3f(x1, y2, z2);
+        glEnd();
+
+        // sisi bawah - gelap total (nempel lantai, jarang kelihatan)
+        glColor3f(0.15f, 0.15f, 0.15f);
+        glBegin(GL_QUADS);
+            glVertex3f(x1, y1, z1); glVertex3f(x2, y1, z1);
+            glVertex3f(x2, y2, z1); glVertex3f(x1, y2, z1);
+        glEnd();
     }
     else
     {
         glColor4f(0.05f, 0.05f, 0.2f, 0.5f);
         glBegin(GL_QUADS);
-        glVertex3f((float)gridX, (float)gridY, 0.0f);
-        glVertex3f((float)gridX + 1.0f, (float)gridY, 0.0f);
-        glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, 0.0f);
-        glVertex3f((float)gridX, (float)gridY + 1.0f, 0.0f);
+            glVertex3f((float)gridX,        (float)gridY,        0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY,        0.0f);
+            glVertex3f((float)gridX + 1.0f, (float)gridY + 1.0f, 0.0f);
+            glVertex3f((float)gridX,        (float)gridY + 1.0f, 0.0f);
         glEnd();
     }
 }
