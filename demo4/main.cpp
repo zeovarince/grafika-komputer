@@ -84,8 +84,8 @@ int nrpRotAxis = 2;       // 0 = X, 1 = Y, 2 = Z -> diubah lewat klik mouse
 // flag mode tampilan: false = orthogonal (atas), true = isometric
 bool isIsometricMode = false;
 // sudut rotasi maze (derajat), disimpan permanen -> tidak reset saat ganti mode
-float mazeTiltX = 50.0f;  // tilt/pitch (tombol i/k)
-float mazeYawZ = 45.0f;   // yaw/putar mendatar (tombol j/l)
+float mazeTiltX = 20.0f;  // tilt/pitch (tombol i/k)
+float mazeYawZ = 0.0f;   // yaw/putar mendatar (tombol j/l)
 float mazeRotStep = 5.0f; // besar perubahan tiap penekanan tombol
 // status on/off tiap komponen cahaya
 bool ambientOn = true;
