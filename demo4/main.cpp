@@ -118,7 +118,7 @@ float camAngle = 270.0f; // menghadap ke arah -Y (ke dalam maze)
 bool wallTransparent = false;
 
 // flag tabrakan NRP
-bool nrpCollided = false; 
+bool nrpCollided = false;
 
 // deklarasi fungsi
 void drawMaze();
@@ -141,43 +141,49 @@ void drawCell(int gridX, int gridY, float r, float g, float b, bool isWallCell)
         float z1 = 0.0f,                z2 = wallHeight;
         float alpha = wallTransparent ? 0.5f : 1.0f;
 
-        // sisi atas - paling terang (seolah kena cahaya langsung dari atas)
+        // sisi atas (menghadap +Z) - paling terang, kena cahaya langsung
+        glNormal3f(0.0f, 0.0f, 1.0f);
         glColor4f(0.85f, 0.85f, 0.85f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x1, y1, z2); glVertex3f(x2, y1, z2);
             glVertex3f(x2, y2, z2); glVertex3f(x1, y2, z2);
         glEnd();
 
-        // sisi depan (y1) - medium terang
+        // sisi depan (menghadap -Y) - medium terang
+        glNormal3f(0.0f, -1.0f, 0.0f);
         glColor4f(0.55f, 0.55f, 0.55f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x1, y1, z1); glVertex3f(x2, y1, z1);
             glVertex3f(x2, y1, z2); glVertex3f(x1, y1, z2);
         glEnd();
 
-        // sisi kanan (x2) - medium, sedikit lebih gelap dari depan
+        // sisi kanan (menghadap +X) - sedikit lebih gelap dari depan
+        glNormal3f(1.0f, 0.0f, 0.0f);
         glColor4f(0.45f, 0.45f, 0.45f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x2, y1, z1); glVertex3f(x2, y2, z1);
             glVertex3f(x2, y2, z2); glVertex3f(x2, y1, z2);
         glEnd();
 
-        // sisi belakang (y2) - gelap (sisi "bayangan")
+        // sisi belakang (menghadap +Y) - gelap, sisi "bayangan"
+        glNormal3f(0.0f, 1.0f, 0.0f);
         glColor4f(0.3f, 0.3f, 0.3f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x2, y2, z1); glVertex3f(x1, y2, z1);
             glVertex3f(x1, y2, z2); glVertex3f(x2, y2, z2);
         glEnd();
 
-        // sisi kiri (x1) - paling gelap
-        glColor4f(0.25f, 0.25f, 0.25f,alpha);
+        // sisi kiri (menghadap -X) - paling gelap
+        glNormal3f(-1.0f, 0.0f, 0.0f);
+        glColor4f(0.25f, 0.25f, 0.25f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x1, y2, z1); glVertex3f(x1, y1, z1);
             glVertex3f(x1, y1, z2); glVertex3f(x1, y2, z2);
         glEnd();
 
-        // sisi bawah - gelap total (nempel lantai, jarang kelihatan)
-        glColor4f(0.15f, 0.15f, 0.15f,alpha);
+        // sisi bawah (menghadap -Z) - gelap total, nempel lantai
+        glNormal3f(0.0f, 0.0f, -1.0f);
+        glColor4f(0.15f, 0.15f, 0.15f, alpha);
         glBegin(GL_QUADS);
             glVertex3f(x1, y1, z1); glVertex3f(x2, y1, z1);
             glVertex3f(x2, y2, z1); glVertex3f(x1, y2, z1);
@@ -185,6 +191,8 @@ void drawCell(int gridX, int gridY, float r, float g, float b, bool isWallCell)
     }
     else
     {
+        // lantai selalu menghadap ke atas (+Z)
+        glNormal3f(0.0f, 0.0f, 1.0f);
         glColor4f(0.05f, 0.05f, 0.2f, 0.5f);
         glBegin(GL_QUADS);
             glVertex3f((float)gridX,        (float)gridY,        0.0f);
@@ -250,13 +258,13 @@ void drawPlayer_3D()
                 playerX + 1.0f - margin, playerY + 1.0f - margin, topZ);
 }
 
-// switcher
+// switcher: 3D di mode isometric dan FPS, 2D hanya di mode orthogonal
 void drawPlayer()
 {
-    if (isIsometricMode)
-        drawPlayer_3D();
+    if (isIsometricMode || viewMode == 2)
+        drawPlayer_3D(); // balok beneran, kelihatan dari samping di FPS
     else
-        drawPlayer_2D();
+        drawPlayer_2D(); // kotak datar, cukup untuk tampilan atas (orthogonal)
 }
 
 // gambar 1 batang segmen (kotak kecil) dari titik (x1,y1) ke (x2,y2)
@@ -325,50 +333,62 @@ void gambarAngka4(float baseX, float baseY, float lebar, float tinggi)
 
 // gambar 1 balok dari pojok (x1,y1,z1) ke (x2,y2,z2)
 // 6 sisi independen x 4 vertex = 24 vertex total
+// tiap sisi wajib punya glNormal3f agar lighting fixed-function bekerja
 void gambarBalok(float x1, float y1, float z1,
                  float x2, float y2, float z2)
 {
-    // depan (z2)
+    // sisi depan (menghadap -Y), normal menunjuk ke -Y
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    glBegin(GL_QUADS);
+    glVertex3f(x1, y1, z2);
+    glVertex3f(x2, y1, z2);
+    glVertex3f(x2, y1, z1);
+    glVertex3f(x1, y1, z1);
+    glEnd();
+
+    // sisi belakang (menghadap +Y), normal menunjuk ke +Y
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    glBegin(GL_QUADS);
+    glVertex3f(x2, y2, z1);
+    glVertex3f(x1, y2, z1);
+    glVertex3f(x1, y2, z2);
+    glVertex3f(x2, y2, z2);
+    glEnd();
+
+    // sisi kiri (menghadap -X), normal menunjuk ke -X
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    glBegin(GL_QUADS);
+    glVertex3f(x1, y1, z1);
+    glVertex3f(x1, y2, z1);
+    glVertex3f(x1, y2, z2);
+    glVertex3f(x1, y1, z2);
+    glEnd();
+
+    // sisi kanan (menghadap +X), normal menunjuk ke +X
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    glBegin(GL_QUADS);
+    glVertex3f(x2, y1, z2);
+    glVertex3f(x2, y2, z2);
+    glVertex3f(x2, y2, z1);
+    glVertex3f(x2, y1, z1);
+    glEnd();
+
+    // sisi atas (menghadap +Z), normal menunjuk ke +Z
+    glNormal3f(0.0f, 0.0f, 1.0f);
     glBegin(GL_QUADS);
     glVertex3f(x1, y1, z2);
     glVertex3f(x2, y1, z2);
     glVertex3f(x2, y2, z2);
     glVertex3f(x1, y2, z2);
     glEnd();
-    // belakang (z1)
+
+    // sisi bawah (menghadap -Z), normal menunjuk ke -Z
+    glNormal3f(0.0f, 0.0f, -1.0f);
     glBegin(GL_QUADS);
-    glVertex3f(x2, y1, z1);
-    glVertex3f(x1, y1, z1);
     glVertex3f(x1, y2, z1);
     glVertex3f(x2, y2, z1);
-    glEnd();
-    // kiri (x1)
-    glBegin(GL_QUADS);
-    glVertex3f(x1, y1, z1);
-    glVertex3f(x1, y1, z2);
-    glVertex3f(x1, y2, z2);
-    glVertex3f(x1, y2, z1);
-    glEnd();
-    // kanan (x2)
-    glBegin(GL_QUADS);
-    glVertex3f(x2, y1, z2);
     glVertex3f(x2, y1, z1);
-    glVertex3f(x2, y2, z1);
-    glVertex3f(x2, y2, z2);
-    glEnd();
-    // atas (y2)
-    glBegin(GL_QUADS);
-    glVertex3f(x1, y2, z2);
-    glVertex3f(x2, y2, z2);
-    glVertex3f(x2, y2, z1);
-    glVertex3f(x1, y2, z1);
-    glEnd();
-    // bawah (y1)
-    glBegin(GL_QUADS);
     glVertex3f(x1, y1, z1);
-    glVertex3f(x2, y1, z1);
-    glVertex3f(x2, y1, z2);
-    glVertex3f(x1, y1, z2);
     glEnd();
 }
 
@@ -515,18 +535,35 @@ void resetLevel()
     randomizeNRP();
 }
 
-// terapkan status on/off + mode siang/malam ke GL_LIGHT0
+// terapkan status on/off + mode siang/malam
+// LIGHT0 = Ambient + Diffuse (Specular-nya selalu hitam)
+// LIGHT1 = Specular saja (Ambient + Diffuse-nya selalu hitam)
 void updateLighting()
 {
     // pilih palet warna sesuai mode siang/malam
-    GLfloat *ambientAktif = isNightMode ? warnaAmbientMalam : warnaAmbientSiang;
-    GLfloat *diffuseAktif = isNightMode ? warnaDiffuseMalam : warnaDiffuseSiang;
+    GLfloat *ambientAktif  = isNightMode ? warnaAmbientMalam  : warnaAmbientSiang;
+    GLfloat *diffuseAktif  = isNightMode ? warnaDiffuseMalam  : warnaDiffuseSiang;
     GLfloat *specularAktif = isNightMode ? warnaSpecularMalam : warnaSpecularSiang;
 
-    // kalau komponen di-OFF, kirim hitam (0,0,0,1) -> efeknya seperti dimatikan
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientOn ? ambientAktif : warnaHitam);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseOn ? diffuseAktif : warnaHitam);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specularOn ? specularAktif : warnaHitam);
+    // --- GL_LIGHT0: khusus Ambient dan Diffuse ---
+    // Specular LIGHT0 dikunci hitam supaya tidak dobel dengan LIGHT1
+    glLightfv(GL_LIGHT0, GL_AMBIENT,  ambientOn ? ambientAktif : warnaHitam);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE,  diffuseOn ? diffuseAktif : warnaHitam);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, warnaHitam); // selalu hitam di LIGHT0
+
+    // --- GL_LIGHT1: khusus Specular ---
+    // Di mode Orthogonal (viewMode == 0), kamera tegak lurus dari atas.
+    // Sudut pantul specular jadi sangat ideal sehingga muncul silau buatan
+    // di tengah layar. Solusi: paksa specular = hitam di mode 2D,
+    // kembalikan ke warna asli saat mode 1 (isometric) atau 2 (FPS).
+    bool specularAktifDiMode = (viewMode != 0); // false = mode 2D ortho
+    GLfloat *specularFinal = (specularOn && specularAktifDiMode)
+                             ? specularAktif
+                             : warnaHitam;
+
+    glLightfv(GL_LIGHT1, GL_AMBIENT,  warnaHitam);   // selalu hitam di LIGHT1
+    glLightfv(GL_LIGHT1, GL_DIFFUSE,  warnaHitam);   // selalu hitam di LIGHT1
+    glLightfv(GL_LIGHT1, GL_SPECULAR, specularFinal); // hidup hanya di mode 3D
 
     // warna langit/background ikut berubah siang-malam
     if (isNightMode)
@@ -593,6 +630,10 @@ void keyboard(unsigned char key, int x, int y)
             camZ = 0.5f;
             camAngle = 270.0f;
         }
+
+        // perbarui specular supaya langsung nonaktif saat balik ke mode 2D,
+        // atau aktif kembali saat masuk mode isometric/FPS
+        updateLighting();
 
         glutPostRedisplay();
         return;
@@ -686,13 +727,19 @@ void keyboard(unsigned char key, int x, int y)
     // gerakan valid, update posisi player
     playerX = newX;
     playerY = newY;
+
+    // cek tabrakan dengan NRP, hanya sekali saja (permanen)
     if (!nrpCollided && playerX == nrpX && playerY == nrpY)
     {
         nrpCollided = true;
-        cout << "Tabrakan dengan NRP!" << endl;
-        randomizeNRP();      // pindah NRP ke posisi baru
-        nrpCollided = false; // reset supaya bisa deteksi lagi
+        cout << "NRP Ditemukan/Ditabrak! Koordinat: (" << nrpX << ", " << nrpY << ")" << endl;
+        // pindahkan NRP ke titik mati supaya tidak kelihatan lagi
+        nrpX = -100;
+        nrpY = -100;
+        // tidak panggil randomizeNRP() dan tidak reset nrpCollided ke false
+        // supaya NRP benar-benar hilang permanen sampai level di-reset
     }
+
     glutPostRedisplay();
 }
 
@@ -793,17 +840,19 @@ void display()
     setupView();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // LANGKAH 1 — tembok dulu (solid)
+    // LANGKAH 1 - objek solid (player dan NRP) digambar paling awal
+    // supaya depth buffer-nya sudah tertulis sebelum objek transparan di-render
+    drawPlayer();
+    drawNRP(nrpX, nrpY);
+
+    // LANGKAH 2 - tembok digambar setelah objek solid
+    // tembok bisa transparan lewat tombol 5, jadi harus di belakang objek solid
     for (int y = 0; y < GRID_SIZE; y++)
         for (int x = 0; x < GRID_SIZE; x++)
             if (currentMaze[y][x] == 1)
                 drawCell(x, y, 0.2f, 0.2f, 0.2f, true);
 
-    // LANGKAH 2 — player dan NRP (solid, sebelum lantai transparan)
-    drawPlayer();
-    drawNRP(nrpX, nrpY);
-
-    // LANGKAH 3 — lantai transparan PALING AKHIR
+    // LANGKAH 3 - lantai SELALU transparan, digambar paling akhir
     for (int y = 0; y < GRID_SIZE; y++)
         for (int x = 0; x < GRID_SIZE; x++)
             if (currentMaze[y][x] == 0)
@@ -824,16 +873,27 @@ void myinit()
     glEnable(GL_DEPTH_TEST); // aktifkan depth test untuk 3D
     glEnable(GL_BLEND);      // aktifkan blending untuk transparansi
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // === scaffold lighting sementara, GANTI/GABUNG dengan punya teman yang ngerjain kriteria 1-3 ===
+    // aktifkan lighting fixed-function pipeline
     glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT0); // untuk ambient + diffuse
+    glEnable(GL_LIGHT1); // untuk specular saja
     glEnable(GL_COLOR_MATERIAL);
-glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 
-    GLfloat posisiLampu[] = {9.5f, 9.5f, 15.0f, 1.0f}; // taruh di atas tengah maze, sementara
+    // posisi lampu di atas tengah maze
+    GLfloat posisiLampu[] = {9.5f, 9.5f, 15.0f, 1.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, posisiLampu);
+    glLightfv(GL_LIGHT1, GL_POSITION, posisiLampu); // LIGHT1 posisi sama
 
-    updateLighting();  // langsung terapkan status default (semua ON, mode siang)
+    // definisi material specular agar kilap benar-benar muncul di benda
+    // GL_COLOR_MATERIAL hanya mengatur ambient+diffuse, jadi specular
+    // harus diset manual lewat glMaterialfv
+    GLfloat matSpecular[]  = {1.0f, 1.0f, 1.0f, 1.0f}; // putih = kilap penuh
+    GLfloat matShininess[] = {50.0f};                    // 0-128, makin besar makin tajam kilapnya
+    glMaterialfv(GL_FRONT, GL_SPECULAR,  matSpecular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, matShininess);
+
+    updateLighting();  // terapkan status default (semua ON, mode siang)
     srand(time(NULL)); // seed random sekali di awal program
 
     randomizeNRP();
@@ -876,15 +936,69 @@ void specialKey(int key, int x, int y)
     {
         camX = newX;
         camY = newY;
+
+        // cek tabrakan NRP di mode FPS, logika sama: sekali saja, permanen
+        // pakai posisi grid kamera sebagai acuan, bukan playerX/playerY
+        if (!nrpCollided && gridX == nrpX && gridY == nrpY)
+        {
+            nrpCollided = true;
+            cout << "NRP Ditemukan/Ditabrak (FPS)! Koordinat: (" << nrpX << ", " << nrpY << ")" << endl;
+            // pindahkan NRP ke titik mati supaya tidak kelihatan lagi
+            nrpX = -100;
+            nrpY = -100;
+            // tidak panggil randomizeNRP() dan tidak reset nrpCollided
+        }
     }
 
     glutPostRedisplay();
 }
+// cetak panduan kontrol lengkap ke terminal
+void tampilkanInstruksi()
+{
+    cout << "========================================" << endl;
+    cout << "   MAZE 3D - PANDUAN KONTROL"            << endl;
+    cout << "========================================" << endl;
+    cout << "  GERAKAN PLAYER (Mode Orthogonal/Iso)" << endl;
+    cout << "    W         : Gerak ke atas"           << endl;
+    cout << "    S         : Gerak ke bawah"          << endl;
+    cout << "    A         : Gerak ke kiri"           << endl;
+    cout << "    D         : Gerak ke kanan"          << endl;
+    cout << "----------------------------------------" << endl;
+    cout << "  NAVIGASI KAMERA FPS (Mode View 3)"    << endl;
+    cout << "    Panah Atas   : Maju"                 << endl;
+    cout << "    Panah Bawah  : Mundur"               << endl;
+    cout << "    Panah Kiri   : Putar kamera kiri"   << endl;
+    cout << "    Panah Kanan  : Putar kamera kanan"  << endl;
+    cout << "----------------------------------------" << endl;
+    cout << "  MODE & TAMPILAN"                       << endl;
+    cout << "    V         : Ganti mode view"         << endl;
+    cout << "                  0 = Orthogonal (atas)" << endl;
+    cout << "                  1 = Isometrik 3D"      << endl;
+    cout << "                  2 = Kamera FPS"        << endl;
+    cout << "    C         : Ganti level maze"        << endl;
+    cout << "    5         : Toggle transparansi tembok" << endl;
+    cout << "----------------------------------------" << endl;
+    cout << "  ROTASI MAZE (hanya di mode Isometrik)" << endl;
+    cout << "    J / L     : Putar kiri / kanan (Yaw)"  << endl;
+    cout << "    I / K     : Tilt depan / belakang (Pitch)" << endl;
+    cout << "----------------------------------------" << endl;
+    cout << "  ROTASI ANIMASI NRP"                    << endl;
+    cout << "    Klik Kiri   : Rotasi sumbu X"        << endl;
+    cout << "    Klik Tengah : Rotasi sumbu Y"        << endl;
+    cout << "    Klik Kanan  : Rotasi sumbu Z"        << endl;
+    cout << "----------------------------------------" << endl;
+    cout << "  PENCAHAYAAN"                           << endl;
+    cout << "    1         : On/Off cahaya Ambient"   << endl;
+    cout << "    2         : On/Off cahaya Diffuse"   << endl;
+    cout << "    3         : On/Off cahaya Specular"  << endl;
+    cout << "    4         : Toggle mode Siang/Malam" << endl;
+    cout << "========================================" << endl;
+    cout << "  Temukan NRP di dalam maze untuk skor!" << endl;
+    cout << "========================================" << endl;
+}
+
 int main(int argc, char **argv)
 {
-    cout << "Maze 3D" << endl;
-    cout << "W A S D untuk gerak, C untuk ganti level" << endl;
-
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 800);
@@ -897,6 +1011,8 @@ int main(int argc, char **argv)
     glutSpecialFunc(specialKey);
     glutMouseFunc(mouse);
     glutTimerFunc(16, timer, 0);
+
+    tampilkanInstruksi(); // cetak panduan ke terminal sebelum game mulai
 
     glutMainLoop();
     return 0;
