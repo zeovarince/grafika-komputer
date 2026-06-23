@@ -604,13 +604,16 @@ void keyboard(unsigned char key, int x, int y)
         {
             currentMaze = maze2;
             levelFlag = 2;
+            cout << "Pindah ke Maze 2!" << endl;
         }
         else
         {
             currentMaze = maze1;
             levelFlag = 1;
+            cout << "Pindah ke Maze 1!" << endl;
         }
-
+        nrpCollided = false;
+        cout << "NRP direset ke posisi baru!" << endl;
         resetLevel();
         glutPostRedisplay();
         return;
@@ -733,11 +736,6 @@ void keyboard(unsigned char key, int x, int y)
     {
         nrpCollided = true;
         cout << "NRP Ditemukan/Ditabrak! Koordinat: (" << nrpX << ", " << nrpY << ")" << endl;
-        // pindahkan NRP ke titik mati supaya tidak kelihatan lagi
-        nrpX = -100;
-        nrpY = -100;
-        // tidak panggil randomizeNRP() dan tidak reset nrpCollided ke false
-        // supaya NRP benar-benar hilang permanen sampai level di-reset
     }
 
     glutPostRedisplay();
@@ -943,10 +941,6 @@ void specialKey(int key, int x, int y)
         {
             nrpCollided = true;
             cout << "NRP Ditemukan/Ditabrak (FPS)! Koordinat: (" << nrpX << ", " << nrpY << ")" << endl;
-            // pindahkan NRP ke titik mati supaya tidak kelihatan lagi
-            nrpX = -100;
-            nrpY = -100;
-            // tidak panggil randomizeNRP() dan tidak reset nrpCollided
         }
     }
 
